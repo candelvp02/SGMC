@@ -1,0 +1,175 @@
+﻿@model SGMC.Application.Dto.Users.PatientDto
+
+@{
+    ViewData["Title"] = "Editar Paciente";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">Editar Paciente</h3>
+                </div>
+
+                <div class="card-body">
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+                            @ViewBag.ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="PatientId" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <fieldset class="border p-3 mb-4">
+                            <legend class="w-auto px-2">Información Personal</legend>
+
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Nombre Completo</label>
+                                    <input type="text" class="form-control" value="@Model.FullName" readonly />
+
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Cédula</label>
+
+                                    <input type="text" class="form-control" value="@Model.IdentificationNumber" readonly />
+                                </div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Género</label>
+
+                                    <input type="text" class="form-control" value="@(Model.Gender == "M" ?
+                                                                                                                                                        "Masculino" : "Femenino")" readonly />
+                                </div>
+                                <div class="col-md-6 mb-3">
+
+                                    <label class="form-label">Tipo de Sangre</label>
+                                    <input type="text" class="form-control" value="@Model.BloodType" readonly />
+                                </div>
+
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="border p-3 mb-4">
+
+                            <legend class="w-auto px-2">Información de Contacto</legend>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="PhoneNumber" class="form-label">Teléfono</label>
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="XXX-XXX-XXXX" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="Email" class="form-label">Email</label>
+                                    <input asp-for="Email" type="email" class="form-control" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label asp-for="Address" class="form-label">Dirección</label>
+                                <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+                                <span asp-validation-for="Address" class="text-danger"></span>
+
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="border p-3 mb-4">
+
+                            <legend class="w-auto px-2">Contacto de Emergencia</legend>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="EmergencyContactName" class="form-label">Nombre del Contacto</label>
+                                    <input asp-for="EmergencyContactName" class="form-control" />
+                                    <span asp-validation-for="EmergencyContactName" class="text-danger"></span>
+
+                                </div>
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="EmergencyContactPhone" class="form-label">Teléfono de Emergencia</label>
+                                    <input asp-for="EmergencyContactPhone" class="form-control" placeholder="XXX-XXX-XXXX" />
+                                    <span asp-validation-for="EmergencyContactPhone" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="border p-3 mb-4">
+                            <legend class="w-auto px-2">Información Médica</legend>
+
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Allergies" class="form-label">Alergias</label>
+                                    <textarea asp-for="Allergies" class="form-control" rows="2"></textarea>
+
+                                    <span asp-validation-for="Allergies" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="InsuranceProviderId" class="form-label">Proveedor de Seguro</label>
+                                    <select asp-for="InsuranceProviderId" class="form-select">
+
+                                        <option value="">-- Seleccione --</option>
+                                        @if (ViewBag.InsuranceProviders != null)
+                                        {
+
+                                            @foreach (var provider in ViewBag.InsuranceProviders)
+                                            {
+
+                                                <option value="@provider.InsuranceProviderId"
+                                                        selected="@(provider.InsuranceProviderId == Model.InsuranceProviderId)">
+
+                                                    @provider.Name
+                                                </option>
+
+                                            }
+                                        }
+
+                                    </select>
+                                    <span asp-validation-for="InsuranceProviderId" class="text-danger"></span>
+                                </div>
+
+                            </div>
+                        </fieldset>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+
+                                <i class="bi bi-save"></i> Actualizar Paciente
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

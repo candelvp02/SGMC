@@ -1,0 +1,77 @@
+﻿@using SGMC.Web.Models.Appointment
+@model AppointmentIndexViewModel
+
+@{
+    ViewData["Title"] = "Gestión de Citas";
+}
+
+<div class="container mt-4">
+
+    <h1><i class="bi bi-calendar-check"></i> Gestión de Citas Médicas</h1>
+
+    @* Mensajes de alerta *@
+    @await Html.PartialAsync("_AlertMessage", ("success", (string?)TempData["SuccessMessage"]))
+    @await Html.PartialAsync("_AlertMessage", ("danger", (string?)TempData["ErrorMessage"]))
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        @await Html.PartialAsync("_AlertMessage", ("danger", (string)ViewBag.ErrorMessage))
+    }
+
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Agendar Nueva Cita
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-filter"></i> Filtrar Citas
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="Filter.PatientId" class="form-label">Paciente</label>
+                    <select asp-for="Filter.PatientId" class="form-select" asp-items="@(new SelectList(Model.Patients, "PatientId", "DisplayText"))">
+                        <option value="">-- Todos los Pacientes --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Filter.DoctorId" class="form-label">Doctor</label>
+                    <select asp-for="Filter.DoctorId" class="form-select" asp-items="@(new SelectList(Model.Doctors, "DoctorId", "DisplayText"))">
+                        <option value="">-- Todos los Doctores --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Filter.StatusId" class="form-label">Estado</label>
+                    <select asp-for="Filter.StatusId" class="form-select" asp-items="@(new SelectList(Model.Statuses, "StatusId", "StatusName"))">
+                        <option value="">-- Todos los Estados --</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-info w-100"><i class="bi bi-search"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    @* Diseño de tarjetas *@
+    @if (Model.Appointments != null && Model.Appointments.Any())
+    {
+        @foreach (var appointment in Model.Appointments)
+        {
+            @await Html.PartialAsync("_AppointmentCard", appointment)
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No se encontraron citas con los filtros seleccionados.
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+}

@@ -1,0 +1,96 @@
+﻿@model SGMC.Web.Models.Appointment.EditAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Editar Cita";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0"><i class="bi bi-pencil"></i> Editar Cita</h3>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            @ViewBag.ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="AppointmentId" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Información de Solo Lectura -->
+                        <fieldset class="border p-3 mb-4">
+                            <legend class="w-auto px-2">Información de la Cita</legend>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Paciente</label>
+                                    <input type="text" class="form-control" value="@Model.PatientName" readonly />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Doctor</label>
+                                    <input type="text" class="form-control" value="@Model.DoctorName" readonly />
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Campos Editables -->
+                        <fieldset class="border p-3 mb-4">
+                            <legend class="w-auto px-2">Modificar Datos</legend>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="AppointmentDate" class="form-label">Fecha y Hora</label>
+                                    <input asp-for="AppointmentDate" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="StatusId" class="form-label">Estado</label>
+                                    <select asp-for="StatusId" class="form-select">
+                                        <option value="">-- Seleccione --</option>
+                                        @if (Model.Statuses != null)
+                                        {
+                                            @foreach (var status in Model.Statuses)
+                                            {
+                                                <option value="@status.StatusId">@status.StatusName</option>
+                                            }
+                                        }
+                                    </select>
+                                    <span asp-validation-for="StatusId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Notes" class="form-label">Notas</label>
+                                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Notes" class="text-danger"></span>
+                            </div>
+                        </fieldset>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

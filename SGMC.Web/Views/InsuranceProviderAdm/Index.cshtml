@@ -1,0 +1,33 @@
+﻿@model IEnumerable<SGMC.Application.Dto.Insurance.InsuranceProviderDto>
+@{
+    ViewData["Title"] = "Proveedores de Seguro";
+}
+
+<h1>Proveedores de Seguro</h1>
+<p><a asp-action="Create" class="btn btn-primary">Crear Nuevo</a></p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<table class="table">
+    <thead>
+        <tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Activo</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.InsuranceProviderId</td>
+                <td>@item.Name</td>
+                <td>@item.PhoneNumber</td>
+                <td>@item.IsActive</td>
+            </tr>
+        }
+    </tbody>
+</table>

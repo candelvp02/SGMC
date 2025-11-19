@@ -1,0 +1,59 @@
+﻿@model IEnumerable<SGMC.Application.Dto.Users.DoctorDto>
+
+@{
+    ViewData["Title"] = "Doctores";
+}
+
+<h1>Gestión de Doctores</h1>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Crear Nuevo Doctor</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre Completo</th>
+            <th>Especialidad</th>
+            <th>Número de Licencia</th>
+            <th>Teléfono</th>
+            <th>Años de Experiencia</th>
+            <th>Activo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var doctor in Model)
+        {
+            <tr>
+                <td>@doctor.DoctorId</td>
+                <td>@doctor.FullName</td>
+                <td>@doctor.SpecialtyName</td>
+                <td>@doctor.LicenseNumber</td>
+                <td>@doctor.PhoneNumber</td>
+                <td>@doctor.YearsOfExperience</td>
+                <td>
+                    @if (doctor.IsActive)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactivo</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@doctor.DoctorId" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Details" asp-route-id="@doctor.DoctorId" class="btn btn-sm btn-info">Detalles</a>
+                    <a asp-action="Delete" asp-route-id="@doctor.DoctorId" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

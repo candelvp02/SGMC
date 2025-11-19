@@ -1,0 +1,23 @@
+﻿@model SGMC.Application.Dto.Insurance.InsuranceProviderDto
+@{
+    ViewData["Title"] = "Eliminar Proveedor";
+}
+
+<h1>Eliminar Proveedor</h1>
+
+<h3 class="text-danger">¿Está seguro de que desea eliminar este proveedor?</h3>
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Nombre:</dt>
+        <dd class="col-sm-10"><strong>@Model.Name</strong></dd>
+        <dt class="col-sm-2">ID:</dt>
+        <dd class="col-sm-10">@Model.InsuranceProviderId</dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="InsuranceProviderId" />
+        <input type="submit" value="Eliminar" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>

@@ -1,0 +1,16 @@
+﻿@model (int StatusId, string StatusName)
+
+@{
+    var badgeClass = Model.StatusId switch
+    {
+        1 => "bg-warning text-dark",
+        2 => "bg-success",
+        3 => "bg-danger",
+        4 => "bg-info",
+        _ => "bg-secondary"
+    };
+}
+
+<span class="badge @badgeClass">
+    @Model.StatusName
+</span>

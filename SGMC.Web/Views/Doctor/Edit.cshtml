@@ -1,0 +1,75 @@
+﻿@model SGMC.Application.Dto.Users.UpdateDoctorDto
+
+@{
+    ViewData["Title"] = "Editar Doctor";
+}
+
+<h1>Editar Doctor</h1>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <input type="hidden" asp-for="DoctorId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PhoneNumber" class="control-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="YearsOfExperience" class="control-label"></label>
+                <input asp-for="YearsOfExperience" class="form-control" type="number" />
+                <span asp-validation-for="YearsOfExperience" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Education" class="control-label"></label>
+                <textarea asp-for="Education" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Education" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Bio" class="control-label"></label>
+                <textarea asp-for="Bio" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Bio" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ConsultationFee" class="control-label"></label>
+                <input asp-for="ConsultationFee" class="form-control" type="number" step="0.01" />
+                <span asp-validation-for="ConsultationFee" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ClinicAddress" class="control-label"></label>
+                <textarea asp-for="ClinicAddress" class="form-control" rows="2"></textarea>
+                <span asp-validation-for="ClinicAddress" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="LicenseExpirationDate" class="control-label"></label>
+                <input asp-for="LicenseExpirationDate" class="form-control" type="date" />
+                <span asp-validation-for="LicenseExpirationDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Guardar" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

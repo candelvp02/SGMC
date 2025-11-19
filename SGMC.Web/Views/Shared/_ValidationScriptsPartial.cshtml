@@ -1,0 +1,65 @@
+﻿<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+        // Configuración personalizada de validación
+        $.validator.setDefaults({
+            highlight: function (element) {
+                $(element).addClass('is-invalid').removeClass('is-valid');
+            },
+            unhighlight: function (element) {
+                $(element).removeClass('is-invalid').addClass('is-valid');
+            },
+            errorElement: 'span',
+            errorClass: 'text-danger',
+
+       errorPlacement: function (error, element) {
+                error.addClass('invalid-feedback');
+                element.closest('.mb-3').append(error);
+            }
+        });
+    // Validación personalizada para formato de cédula dominicana
+        $.validator.addMethod("cedula", function (value, element) {
+            return this.optional(element) || /^\d{3}-\d{7}-\d{1}$/.test(value);
+        }, "Formato de cédula inválido (XXX-XXXXXXX-X)");
+    // Validación personalizada para teléfono
+        $.validator.addMethod("telefono", function (value, element) {
+            return this.optional(element) || /^\d{3}-\d{3}-\d{4}$/.test(value);
+        }, "Formato de teléfono inválido (XXX-XXX-XXXX)");
+
+        $(document).ready(function() {
+
+            // Auto-formateo de cédula
+            // Usamos 'input' en lugar de 'keyup' para que funcione al pegar texto.
+            $('input[name="IdentificationNumber"]').on('input', function() {
+                let value = $(this).val().replace(/[^0-9]/g, ''); // Solo dígitos
+
+                if (value.length > 10) {
+                    // Formato: 001-0750845-9
+                    value = value.substring(0, 3) + '-' + value.substring(3, 10) + '-' + value.substring(10, 11);
+                } else if (value.length > 3) {
+                    // Formato: 001-0750845
+                    value = value.substring(0, 3) + '-' + value.substring(3);
+                }
+                // Si tiene 3 o menos, no se pone guion.
+
+                $(this).val(value.substring(0, 13)); // Longitud máxima (11 dígitos + 2 guiones)
+            });
+
+            // Auto-formateo de teléfono
+            $('input[name="PhoneNumber"], input[name="EmergencyContactPhone"]').on('input', function() {
+                let value = $(this).val().replace(/[^0-9]/g, ''); // Solo dígitos
+
+                if (value.length > 6) {
+                    // Formato: 809-123-4567
+                    value = value.substring(0, 3) + '-' + value.substring(3, 6) + '-' + value.substring(6, 10);
+                } else if (value.length > 3) {
+                    // Formato: 809-123
+                    value = value.substring(0, 3) + '-' + value.substring(3);
+                }
+
+                $(this).val(value.substring(0, 12)); // Longitud máxima (10 dígitos + 2 guiones)
+            });
+        });
+</script>

@@ -1,0 +1,21 @@
+﻿@model (string Type, string? Message)
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-@Model.Type alert-dismissible fade show" role="alert">
+        <i class="bi bi-@(GetIcon(Model.Type))"></i>
+        @Model.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@functions {
+    string GetIcon(string type) => type switch
+    {
+        "success" => "check-circle",
+        "danger" => "exclamation-triangle",
+        "warning" => "exclamation-circle",
+        "info" => "info-circle",
+        _ => "info-circle"
+    };
+}

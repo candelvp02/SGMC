@@ -1,0 +1,50 @@
+﻿@model IEnumerable<SGMC.Application.Dto.Medical.SpecialtyDto>
+@{
+    ViewData["Title"] = "Especialidades";
+}
+
+<h1>Gestión de Especialidades</h1>
+<p><a asp-action="Create" class="btn btn-primary">Crear Nueva Especialidad</a></p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.SpecialtyId</td>
+                <td>@item.SpecialtyName</td>
+                <td>
+                    @if (item.IsActive)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactivo</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.SpecialtyId" class="btn btn-sm btn-warning">Editar</a> |
+                    <a asp-action="Delete" asp-route-id="@item.SpecialtyId" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

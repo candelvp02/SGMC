@@ -1,0 +1,100 @@
+﻿using Microsoft.Extensions.Logging;
+using Moq;
+using SGMC.Application.Dto.Users;
+using SGMC.Application.Interfaces.Service;
+using SGMC.Application.Services;
+using SGMC.Domain.Repositories.Appointments;
+using SGMC.Domain.Repositories.Medical;
+using SGMC.Domain.Repositories.Users;
+
+namespace SGMC.Tests.Services
+{
+    public class DoctorServiceTests
+    {
+        private readonly Mock<IDoctorRepository> _repoMock;
+        private readonly Mock<IAppointmentRepository> _apptRepoMock;
+        private readonly Mock<ILogger<DoctorService>> _loggerMock;
+        private readonly IDoctorService _service;
+        private readonly Mock<IUserRepository> _userRepoMock;
+        private readonly Mock<IPersonRepository> _personRepoMock;
+        private readonly Mock<ISpecialtyRepository> _specialtyRepoMock;
+
+        public DoctorServiceTests()
+        {
+            _repoMock = new Mock<IDoctorRepository>();
+            _apptRepoMock = new Mock<IAppointmentRepository>();
+            _loggerMock = new Mock<ILogger<DoctorService>>();
+            _userRepoMock = new Mock<IUserRepository>();
+            _personRepoMock = new Mock<IPersonRepository>();
+            _specialtyRepoMock = new Mock<ISpecialtyRepository>();
+
+            _service = new DoctorService(
+                _repoMock.Object,
+                _apptRepoMock.Object,
+                _loggerMock.Object,
+                _userRepoMock.Object,
+                _personRepoMock.Object,
+                _specialtyRepoMock.Object);
+        }
+
+        private static RegisterDoctorDto GetValidDto(string licenseNumber, DateOnly licenseExpiration)
+        {
+            return new RegisterDoctorDto
+            {
+                FirstName = "Juan",
+                LastName = "Perez",
+                IdentificationNumber = "001-0000001-1",
+                DateOfBirth = new DateOnly(1985, 1, 1),
+                Gender = "M",
+                Email = $"test-{Guid.NewGuid()}@doctor.com",
+                Password = "ValidPassword123",
+                PhoneNumber = "809-555-1234",
+                SpecialtyId = 1,
+                LicenseNumber = licenseNumber,
+                LicenseExpirationDate = licenseExpiration,
+                YearsOfExperience = 10,
+                Education = "MD, University of Health Sciences",
+                Bio = "Experienced cardiologist."
+            };
+        }
+
+        [Fact]
+        public async Task CreateAsync_WhenLicenseNumberEmpty_ReturnsFailure()
+        {
+            // ARRANGE
+            var expiredDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
+            var dto = GetValidDto(string.Empty, expiredDate);
+
+            _personRepoMock.Setup(r => r.ExistsByIdentificationNumberAsync(It.IsAny<string>())).ReturnsAsync(false);
+            _userRepoMock.Setup(r => r.ExistsByEmailAsync(It.IsAny<string>())).ReturnsAsync(false);
+            _specialtyRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
+
+            // ACT
+            var result = await _service.CreateAsync(dto);
+
+            // ASSERT
+            Assert.False(result.Exitoso);
+            Assert.Contains("El número de licencia es requerido", result.Mensaje);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WhenLicenseExpired_ReturnsFailure()
+        {
+            // ARRANGE
+            var expiredDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1));
+            var dto = GetValidDto("L123-EXPIRED", expiredDate);
+
+            _personRepoMock.Setup(r => r.ExistsByIdentificationNumberAsync(It.IsAny<string>())).ReturnsAsync(false);
+            _userRepoMock.Setup(r => r.ExistsByEmailAsync(It.IsAny<string>())).ReturnsAsync(false);
+            _repoMock.Setup(r => r.ExistsByLicenseNumberAsync(It.IsAny<string>())).ReturnsAsync(false);
+            _specialtyRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
+
+            // ACT
+            var result = await _service.CreateAsync(dto);
+
+            // ASSERT
+            Assert.False(result.Exitoso);
+            Assert.Contains("vigente", result.Mensaje);
+        }
+    }
+}

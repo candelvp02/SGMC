@@ -1,0 +1,36 @@
+﻿@model SGMC.Application.Dto.Users.RegisterPatientDto
+
+<fieldset class="border p-3 mb-4">
+    <legend class="w-auto px-2"><i class="bi bi-person"></i> Información Personal</legend>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="FirstName" class="form-label"></label>
+            <input asp-for="FirstName" class="form-control" placeholder="Ej: Juan" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="LastName" class="form-label"></label>
+            <input asp-for="LastName" class="form-control" placeholder="Ej: Pérez" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="IdentificationNumber" class="form-label"></label>
+            <input asp-for="IdentificationNumber" class="form-control"
+                   placeholder="XXX-XXXXXXX-X" />
+            <span asp-validation-for="IdentificationNumber" class="text-danger"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="Gender" class="form-label"></label>
+            <select asp-for="Gender" class="form-select">
+                <option value="">-- Seleccione --</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+            </select>
+            <span asp-validation-for="Gender" class="text-danger"></span>
+        </div>
+    </div>
+</fieldset>

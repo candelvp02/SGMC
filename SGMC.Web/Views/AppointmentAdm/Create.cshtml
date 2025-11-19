@@ -1,0 +1,149 @@
+﻿@model SGMC.Web.Models.Appointment.CreateAppointmentViewModel
+
+@{
+    ViewData["Title"] = "Agendar Cita";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-calendar-plus"></i> Agendar Nueva Cita</h3>
+
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+                            @ViewBag.ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <fieldset class="border p-3 mb-4">
+
+                            <legend class="w-auto px-2"><i class="bi bi-person"></i> Información del Paciente</legend>
+
+                            <div class="mb-3">
+                                <label asp-for="PatientId" class="form-label">Paciente</label>
+
+                                <select asp-for="PatientId" class="form-select" id="patientSelect">
+                                    <option value="">-- Seleccione un paciente --</option>
+
+                                    @if (Model.Patients != null)
+                                    {
+                                        @foreach (var patient in Model.Patients)
+
+                                        {
+                                            <option value="@patient.PatientId">@patient.DisplayText</option>
+
+                                        }
+                                    }
+                                </select>
+
+                                <span asp-validation-for="PatientId" class="text-danger"></span>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="border p-3 mb-4">
+                            <legend class="w-auto px-2"><i class="bi bi-person-badge"></i> Información del Doctor</legend>
+
+                            <div class="mb-3">
+
+                                <label asp-for="DoctorId" class="form-label">Doctor</label>
+                                <select asp-for="DoctorId" class="form-select" id="doctorSelect">
+                                    <option value="">-- Seleccione un doctor --</option>
+
+                                    @if (Model.Doctors != null)
+                                    {
+
+                                        @foreach (var doctor in Model.Doctors)
+                                        {
+
+                                            <option value="@doctor.DoctorId">@doctor.DisplayText</option>
+                                        }
+                                    }
+
+                                </select>
+                                <span asp-validation-for="DoctorId" class="text-danger"></span>
+                            </div>
+                        </fieldset>
+
+
+                        <fieldset class="border p-3 mb-4">
+                            <legend class="w-auto px-2"><i class="bi bi-calendar-event"></i> Fecha y Hora de la Cita</legend>
+
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="AppointmentDate" class="form-label">Fecha y Hora</label>
+
+                                    <input asp-for="AppointmentDate" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+
+                                    <small class="form-text text-muted">
+                                        Horario de atención: 8:00 AM - 8:00 PM (Lunes a Sábado)
+                                    </small>
+
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mb-0">
+
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Nota:</strong> Las citas deben agendarse con al menos 10 minutos de anticipación.
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="border p-3 mb-4">
+
+                            <legend class="w-auto px-2"><i class="bi bi-journal-text"></i> Notas (Opcional)</legend>
+
+                            <div class="mb-3">
+                                <label asp-for="Notes" class="form-label">Observaciones</label>
+
+                                <textarea asp-for="Notes" class="form-control" rows="3"
+                                          placeholder="Ingrese cualquier nota o instrucción especial para la cita"></textarea>
+                                <span asp-validation-for="Notes" class="text-danger"></span>
+
+                            </div>
+                        </fieldset>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+
+                                <i class="bi bi-save"></i> Agendar Cita
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function() {
+            // Configurar fecha mínima
+            var now = new Date();
+            now.setMinutes(now.getMinutes() + 10);
+            var minDateTime = now.toISOString().slice(0, 16);
+            $('#AppointmentDate').attr('min', minDateTime);
+        });
+    </script>
+}

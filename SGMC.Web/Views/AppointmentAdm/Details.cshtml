@@ -1,0 +1,205 @@
+﻿@model SGMC.Web.Models.Appointment.AppointmentDetailsViewModel
+
+@{
+    ViewData["Title"] = "Detalles de la Cita";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0"><i class="bi bi-calendar-check"></i> Detalles de la Cita</h3>
+                        <span class="badge @Model.StatusBadgeClass fs-6">@Model.StatusName</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i> @ViewBag.ErrorMessage
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Información de la Cita -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información General</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <dl class="row">
+                                            <dt class="col-sm-5">ID Cita:</dt>
+                                            <dd class="col-sm-7"><strong>@Model.AppointmentId</strong></dd>
+
+                                            <dt class="col-sm-5">Fecha:</dt>
+                                            <dd class="col-sm-7">
+                                                <i class="bi bi-calendar"></i> @Model.AppointmentDateFormatted
+                                            </dd>
+
+                                            <dt class="col-sm-5">Hora:</dt>
+                                            <dd class="col-sm-7">
+                                                <i class="bi bi-clock"></i> @Model.AppointmentTimeFormatted
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <dl class="row">
+                                            <dt class="col-sm-5">Estado:</dt>
+                                            <dd class="col-sm-7">
+                                                <span class="badge @Model.StatusBadgeClass">@Model.StatusName</span>
+                                            </dd>
+
+                                            <dt class="col-sm-5">Creada el:</dt>
+                                            <dd class="col-sm-7">
+                                                @Model.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")
+                                            </dd>
+
+                                            <dt class="col-sm-5">Tipo:</dt>
+                                            <dd class="col-sm-7">
+                                                @if (Model.IsFuture)
+                                                {
+                                                    <span class="badge bg-info">Próxima</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Pasada</span>
+                                                }
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del Paciente -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-person"></i> Información del Paciente</h5>
+                            </div>
+                            <div class="card-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-3">Nombre Completo:</dt>
+                                    <dd class="col-sm-9">
+                                        <strong>@Model.PatientName</strong>
+                                    </dd>
+
+                                    <dt class="col-sm-3"></dt>
+                                    <dd class="col-sm-9">
+                                        <a asp-controller="PatientAdm" asp-action="Details" asp-route-id="@Model.PatientId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Ver perfil del paciente
+                                        </a>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <!-- Información del Doctor -->
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Información del Doctor</h5>
+                            </div>
+                            <div class="card-body">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-3">Doctor:</dt>
+                                    <dd class="col-sm-9">
+                                        <strong>Dr. @Model.DoctorName</strong>
+                                    </dd>
+
+                                    <dt class="col-sm-3"></dt>
+                                    <dd class="col-sm-9">
+                                        <a asp-controller="Doctor" asp-action="Details" asp-route-id="@Model.DoctorId" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Ver perfil del doctor
+                                        </a>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="bi bi-gear"></i> Acciones Disponibles</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                                    <div>
+                                        <a asp-action="Index" class="btn btn-secondary">
+                                            <i class="bi bi-arrow-left"></i> Volver al Listado
+                                        </a>
+                                    </div>
+                                    <div class="btn-group">
+                                        @if (Model.CanConfirm)
+                                        {
+                                            <a asp-action="Confirm" asp-route-id="@Model.AppointmentId"
+                                               class="btn btn-success"
+                                               onclick="return confirm('¿Está seguro de confirmar esta cita?');">
+                                                <i class="bi bi-check-circle"></i> Confirmar Cita
+                                            </a>
+                                        }
+
+                                        @if (Model.CanReschedule)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@Model.AppointmentId"
+                                               class="btn btn-warning">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a>
+                                        }
+
+                                        @if (Model.CanCancel)
+                                        {
+                                            <a asp-action="Cancel" asp-route-id="@Model.AppointmentId"
+                                               class="btn btn-danger">
+                                                <i class="bi bi-x-circle"></i> Cancelar Cita
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.IsCancelled || Model.IsCompleted)
+                        {
+                            <div class="alert alert-warning mt-3">
+                                <i class="bi bi-info-circle"></i>
+                                Esta cita está en estado <strong>@Model.StatusName</strong> y no se puede modificar.
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Estado:</dt>
+    <dd class="col-sm-9">
+        @* Partial View compartido *@
+        @await Html.PartialAsync("_StatusBadge", (Model.StatusId, Model.StatusName))
+    </dd>
+</dl>

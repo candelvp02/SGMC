@@ -1,0 +1,46 @@
+﻿@model SGMC.Application.Dto.Users.UserDto
+
+@{
+    ViewData["Title"] = "Detalles del Usuario";
+}
+
+<h1>Detalles del Usuario</h1>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">ID de Usuario</dt>
+        <dd class="col-sm-9">@Model.UserId</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@Model.Email</dd>
+
+        <dt class="col-sm-3">Rol</dt>
+        <dd class="col-sm-9">@Model.RoleName</dd>
+
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">
+            @if (Model.IsActive)
+            {
+                <span class="badge bg-success">Activo</span>
+            }
+            else
+            {
+                <span class="badge bg-danger">Inactivo</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3">Fecha de Creación</dt>
+        <dd class="col-sm-9">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.UserId" class="btn btn-warning">Editar</a>
+    <a asp-action="ChangePassword" asp-route-id="@Model.UserId" class="btn btn-secondary">Cambiar Contraseña</a>
+    <a asp-action="Index" class="btn btn-secondary">Volver a la Lista</a>
+</div>

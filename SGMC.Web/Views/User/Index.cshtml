@@ -1,0 +1,56 @@
+﻿@model IEnumerable<SGMC.Application.Dto.Users.UserDto>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<h1>Gestión de Usuarios</h1>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Crear Nuevo Usuario</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Activo</th>
+            <th>Fecha de Creación</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.UserId</td>
+                <td>@user.Email</td>
+                <td>@user.RoleName</td>
+                <td>
+                    @if (user.IsActive)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactivo</span>
+                    }
+                </td>
+                <td>@user.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@user.UserId" class="btn btn-sm btn-warning">Editar</a>
+                    <a asp-action="Details" asp-route-id="@user.UserId" class="btn btn-sm btn-info">Detalles</a>
+                    <a asp-action="ChangePassword" asp-route-id="@user.UserId" class="btn btn-sm btn-secondary">Cambiar Contraseña</a>
+                    <a asp-action="Delete" asp-route-id="@user.UserId" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
