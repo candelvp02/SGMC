@@ -26,7 +26,12 @@ namespace SGMC.Domain.Entities.Users
 
         public virtual Person? UserNavigation { get; set; }
         public bool Exitoso { get; set; }
-        public object? Datos { get; set; }
+        public string Datos { get; set; } = string.Empty;
         public string? Mensaje { get; set; }
+
+        public static explicit operator User(string v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

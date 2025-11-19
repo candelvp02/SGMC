@@ -144,7 +144,7 @@ namespace SGMC.Application.Services
                 Title = n.Title,
                 Message = n.Message,
                 IsRead = n.IsRead,
-                CreatedAt = n.CreatedAt,
+              //  CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt
             };
         }

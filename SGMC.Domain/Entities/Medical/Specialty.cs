@@ -18,8 +18,13 @@ namespace SGMC.Domain.Entities.Medical
         public bool IsActive { get; set; }
 
         public virtual ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
-        public object? Datos { get; set; }
+        public string Datos { get; set; } = string.Empty;
         public bool Exitoso { get; set; }
         public string? Mensaje { get; set; }
+
+        public static explicit operator Specialty(string v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

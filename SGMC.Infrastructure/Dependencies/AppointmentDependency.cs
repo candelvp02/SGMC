@@ -12,6 +12,9 @@ namespace SGMC.Infrastructure.Dependencies
         {
             services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             services.AddTransient<IAppointmentService, AppointmentService>();
+
+            services.AddScoped<IAppointmentService, AppointmentService>();
+
         }
     }
 }

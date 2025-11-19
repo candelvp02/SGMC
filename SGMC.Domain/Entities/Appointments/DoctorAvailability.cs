@@ -20,8 +20,7 @@ namespace SGMC.Domain.Entities.Appointments
 
         public virtual Doctor? Doctor { get; set; }
         public bool IsActive { get; set; }
-        public object? DayOfWeek { get; set; }
-        public object? CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
 }

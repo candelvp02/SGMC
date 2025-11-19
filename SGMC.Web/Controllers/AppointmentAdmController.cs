@@ -29,8 +29,8 @@ namespace SGMC.Web.Controllers
             // 1. Llamar al nuevo servicio de filtrado
             var result = await _appointmentService.GetFilteredAppointmentsAsync(filter);
 
-            Console.WriteLine($"📊 Result.Exitoso: {result.Exitoso}");
-            Console.WriteLine($"📊 Result.Datos Count: {result.Datos?.Count ?? 0}");
+            Console.WriteLine($"Result.Exitoso: {result.Exitoso}");
+            Console.WriteLine($"Result.Datos Count: {result.Datos?.Count ?? 0}");
 
             if (!result.Exitoso)
             {
@@ -60,7 +60,7 @@ namespace SGMC.Web.Controllers
                 Statuses = GetStatusesList()
             };
 
-            Console.WriteLine($"✅ ViewModel Count: {viewModel.Appointments.Count}");
+            Console.WriteLine($"ViewModel Count: {viewModel.Appointments.Count}");
 
             return View(viewModel);
         }
@@ -70,7 +70,7 @@ namespace SGMC.Web.Controllers
         {
             try
             {
-                Console.WriteLine("🧪 TestDb iniciado...");
+                Console.WriteLine("TestDb iniciado...");
 
                 var directQuery = await _appointmentService.GetAllAsync();
 

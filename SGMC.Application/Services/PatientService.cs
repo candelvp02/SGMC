@@ -9,28 +9,20 @@ using SGMC.Domain.Repositories.Users;
 
 namespace SGMC.Application.Services
 {
-    public class PatientService : IPatientService
+    public class PatientService(
+        IPatientRepository repository,
+        ILogger<PatientService> logger,
+        IUserRepository userRepository,
+        IPersonRepository personRepository,
+        IInsuranceProviderRepository insuranceProviderRepository
+        ) : IPatientService
     {
-        private readonly IPatientRepository _repository;
-        private readonly ILogger<PatientService> _logger;
-        private readonly IUserRepository _userRepository;
-        private readonly IPersonRepository _personRepository;
-        private readonly IInsuranceProviderRepository _insuranceProviderRepository;
-
-        public PatientService(
-            IPatientRepository repository,
-            ILogger<PatientService> logger,
-            IUserRepository userRepository,
-            IPersonRepository personRepository,
-            IInsuranceProviderRepository insuranceProviderRepository
-        )
-        {
-            _repository = repository;
-            _logger = logger;
-            _userRepository = userRepository;
-            _personRepository = personRepository;
-            _insuranceProviderRepository = insuranceProviderRepository;
-        }
+        private readonly IPatientRepository _repository = repository;
+        private readonly ILogger<PatientService> _logger = logger;
+        private readonly IUserRepository _userRepository = userRepository;
+        private readonly IPersonRepository _personRepository = personRepository;
+        private readonly IInsuranceProviderRepository _insuranceProviderRepository = insuranceProviderRepository;
+        private object? createdUser;
 
         public async Task<OperationResult<PatientDto>> CreateAsync(RegisterPatientDto dto)
         {
@@ -71,11 +63,15 @@ namespace SGMC.Application.Services
                 };
 
                 var createdUserResult = await _userRepository.AddAsync(user);
+
                 if (!createdUserResult.Exitoso)
                     return OperationResult<PatientDto>.Fallo(createdUserResult.Mensaje ?? "No se pudo crear el usuario");
 
-                if (createdUserResult.Datos is not User createdUser)
+                if (createdUserResult.Datos == null)
                     return OperationResult<PatientDto>.Fallo("El repositorio no devolvió un User válido");
+
+                // Asigno el dato al tipo correcto. 
+                var createdUser = (User)createdUserResult.Datos;
 
                 int newId = createdUser.UserId;
 

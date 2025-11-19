@@ -67,7 +67,7 @@ namespace SGMC.Persistence.Repositories.Appointments
         public async Task<IEnumerable<DoctorAvailability>> GetByDoctorIdAndDayOfWeekAsync(int doctorId, int dayOfWeek)
         {
             return await _dbSet
-                .Where(d => d.DoctorId == doctorId && (int?)d.DayOfWeek == dayOfWeek)
+                .Where(d => d.DoctorId == doctorId)
                 .ToListAsync();
         }
 
@@ -81,15 +81,13 @@ namespace SGMC.Persistence.Repositories.Appointments
         {
             return await _dbSet.AnyAsync(d =>
                 d.Id != availabilityId && 
-                d.DoctorId == doctorId &&
-                (int?)d.DayOfWeek == dayOfWeek);
+                d.DoctorId == doctorId);
         }
 
         public async Task<bool> CheckForConflictAsync(int doctorId, int dayOfWeek, TimeSpan startTime, TimeSpan endTime)
         {
             return await _dbSet.AnyAsync(d =>
-                d.DoctorId == doctorId &&
-                (int?)d.DayOfWeek == dayOfWeek);
+                d.DoctorId == doctorId);
         }
     }
 }

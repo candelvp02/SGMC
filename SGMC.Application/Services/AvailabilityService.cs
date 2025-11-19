@@ -56,7 +56,6 @@ namespace SGMC.Application.Services
                 var availability = new DoctorAvailability
                 {
                     DoctorId = dto.DoctorId,
-                    DayOfWeek = dto.DayOfWeek,
                     IsActive = true,
                     CreatedAt = DateTime.Now
                 };
@@ -106,7 +105,6 @@ namespace SGMC.Application.Services
                     return OperationResult<AvailabilityDto>.Fallo("El nuevo horario entra en conflicto con otra disponibilidad.");
 
                 // update entity
-                existing.DayOfWeek = dto.DayOfWeek;
                 existing.UpdatedAt = DateTime.Now;
 
                 await _repository.UpdateAsync(existing);
@@ -208,7 +206,6 @@ namespace SGMC.Application.Services
             {
                 AvailabilityId = a.AvailabilityId,
                 DoctorId = a.DoctorId,
-                DayOfWeek = a.DayOfWeek,
                 IsActive = a.IsActive,
                 CreatedAt = a.CreatedAt
             };

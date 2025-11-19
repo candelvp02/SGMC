@@ -18,11 +18,11 @@ namespace SGMC.Domain.Entities.System
         public DateTime? SentAt { get; set; }
 
         public virtual User? User { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
         public string? Mensaje { get; set; }
         public int RecipientId { get; set; }
         public string? Title { get; set; }
         public bool IsRead { get; set; }
-        public object? UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }
