@@ -28,7 +28,7 @@ namespace SGMC.Web.Controllers
         // GET: AppointmentAdm/Index
         public async Task<ActionResult> Index([FromQuery] AppointmentFilterDto filter)
         {
-            Console.WriteLine("🔍 AppointmentAdmController.Index (consumo API) iniciado...");
+            Console.WriteLine("AppointmentAdmController.Index (consumo API) iniciado...");
 
             var apiResult = await _appointmentApiClient.GetAllAsync();
 
