@@ -111,7 +111,8 @@ namespace SGMC.Web.Models.Appointment
                 AppointmentId = this.AppointmentId,
                 AppointmentDate = this.AppointmentDate,
                 StatusId = this.StatusId,
-                Notes = this.Notes
+                Notes = this.Notes,
+                Id = this.AppointmentId
             };
         }
     }

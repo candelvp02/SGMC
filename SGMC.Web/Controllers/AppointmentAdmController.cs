@@ -2,40 +2,40 @@
 using SGMC.Application.Dto.Appointments;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Web.Models.Appointment;
+using SGMC.Web.Services;
 
 namespace SGMC.Web.Controllers
 {
     public class AppointmentAdmController : Controller
     {
-        private readonly IAppointmentService _appointmentService;
+        private readonly IAppointmentApiClient _appointmentApiClient;
         private readonly IPatientService _patientService;
         private readonly IDoctorService _doctorService;
+        private readonly IAppointmentService _appointmentService;
 
         public AppointmentAdmController(
-            IAppointmentService appointmentService,
+            IAppointmentApiClient appointmentApiClient,
             IPatientService patientService,
-            IDoctorService doctorService)
+            IDoctorService doctorService,
+            IAppointmentService appointmentService)
         {
-            _appointmentService = appointmentService;
+            _appointmentApiClient = appointmentApiClient;
             _patientService = patientService;
             _doctorService = doctorService;
+            _appointmentService = appointmentService;
         }
 
-        // GET: AppointmentAdmController
+        // GET: AppointmentAdm/Index
         public async Task<ActionResult> Index([FromQuery] AppointmentFilterDto filter)
         {
-            Console.WriteLine("🔍 Controller Index iniciado con filtros...");
+            Console.WriteLine("🔍 AppointmentAdmController.Index (consumo API) iniciado...");
 
-            // 1. Llamar al nuevo servicio de filtrado
-            var result = await _appointmentService.GetFilteredAppointmentsAsync(filter);
+            var apiResult = await _appointmentApiClient.GetAllAsync();
 
-            Console.WriteLine($"Result.Exitoso: {result.Exitoso}");
-            Console.WriteLine($"Result.Datos Count: {result.Datos?.Count ?? 0}");
-
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
-                // Devolver el ViewModel vacío pero con las listas de filtros
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al obtener las citas desde la API.";
+
                 var emptyViewModel = new AppointmentIndexViewModel
                 {
                     Filter = filter,
@@ -43,18 +43,18 @@ namespace SGMC.Web.Controllers
                     Doctors = await GetDoctorsList(),
                     Statuses = GetStatusesList()
                 };
+
                 return View(emptyViewModel);
             }
 
-            // 2. Mapear la lista de citas
-            var appointmentsList = result.Datos?.Select(AppointmentListViewModel.FromDto).ToList()
-                                  ?? new List<AppointmentListViewModel>();
+            var filteredAppointments = ApplyFilter(apiResult.Data, filter)
+                .Select(AppointmentListViewModel.FromDto)
+                .ToList();
 
-            // 3. Crear el ViewModel principal
             var viewModel = new AppointmentIndexViewModel
             {
                 Filter = filter,
-                Appointments = appointmentsList,
+                Appointments = filteredAppointments,
                 Patients = await GetPatientsList(),
                 Doctors = await GetDoctorsList(),
                 Statuses = GetStatusesList()
@@ -65,21 +65,39 @@ namespace SGMC.Web.Controllers
             return View(viewModel);
         }
 
-        // GET: /AppointmentAdm/TestDb - Endpoint de prueba temporal
+        // Metodo auxiliar para aplicar filtros en la capa de presentación
+        private IEnumerable<AppointmentDto> ApplyFilter(IEnumerable<AppointmentDto> source, AppointmentFilterDto filter)
+        {
+            var query = source;
+
+            if (filter.PatientId.HasValue && filter.PatientId.Value > 0)
+                query = query.Where(a => a.PatientId == filter.PatientId.Value);
+
+            if (filter.DoctorId.HasValue && filter.DoctorId.Value > 0)
+                query = query.Where(a => a.DoctorId == filter.DoctorId.Value);
+
+            if (filter.StatusId.HasValue && filter.StatusId.Value > 0)
+                query = query.Where(a => a.StatusId == filter.StatusId.Value);
+
+            return query;
+        }
+
+        // GET: /AppointmentAdm/TestDb
         public async Task<IActionResult> TestDb()
         {
             try
             {
-                Console.WriteLine("TestDb iniciado...");
+                Console.WriteLine("TestDb (API) iniciado...");
 
-                var directQuery = await _appointmentService.GetAllAsync();
+                var apiResult = await _appointmentApiClient.GetAllAsync();
 
                 var debugInfo = new
                 {
-                    Exitoso = directQuery.Exitoso,
-                    Mensaje = directQuery.Mensaje,
-                    TotalCitas = directQuery.Datos?.Count ?? 0,
-                    Citas = directQuery.Datos?.Select(d => new {
+                    Success = apiResult.Success,
+                    ErrorMessage = apiResult.ErrorMessage,
+                    TotalCitas = apiResult.Data?.Count ?? 0,
+                    Citas = apiResult.Data?.Select(d => new
+                    {
                         d.AppointmentId,
                         d.PatientName,
                         d.DoctorName,
@@ -101,35 +119,35 @@ namespace SGMC.Web.Controllers
             }
         }
 
-        // GET: AppointmentAdmController/Details/5
+        // GET: AppointmentAdm/Details/5
         public async Task<ActionResult> Details(int id)
         {
-            var result = await _appointmentService.GetByIdAsync(id);
+            var apiResult = await _appointmentApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo obtener la cita desde la API.";
                 return View();
             }
 
-            var viewModel = AppointmentDetailsViewModel.FromDto(result.Datos!);
+            var viewModel = AppointmentDetailsViewModel.FromDto(apiResult.Data);
             return View(viewModel);
         }
 
-        // GET: AppointmentAdmController/Create
+        // GET: AppointmentAdm/Create
         public async Task<ActionResult> Create()
         {
             var viewModel = new CreateAppointmentViewModel
             {
                 Patients = await GetPatientsList(),
                 Doctors = await GetDoctorsList(),
-                AppointmentDate = DateTime.Now.AddDays(1).Date.AddHours(9) // 9:00 AM mañana
+                AppointmentDate = DateTime.Now.AddDays(1).Date.AddHours(9)
             };
 
             return View(viewModel);
         }
 
-        // POST: AppointmentAdmController/Create
+        // POST: AppointmentAdm/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(CreateAppointmentViewModel viewModel)
@@ -144,17 +162,17 @@ namespace SGMC.Web.Controllers
                 }
 
                 var dto = viewModel.ToDto();
-                var result = await _appointmentService.CreateAsync(dto);
+                var apiResult = await _appointmentApiClient.CreateAsync(dto);
 
-                if (!result.Exitoso)
+                if (!apiResult.Success)
                 {
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al crear la cita en la API.";
                     viewModel.Patients = await GetPatientsList();
                     viewModel.Doctors = await GetDoctorsList();
                     return View(viewModel);
                 }
 
-                TempData["SuccessMessage"] = "Cita creada correctamente";
+                TempData["SuccessMessage"] = "Cita creada correctamente (API).";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -166,24 +184,24 @@ namespace SGMC.Web.Controllers
             }
         }
 
-        // GET: AppointmentAdmController/Edit/5
+        // GET: AppointmentAdm/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
-            var result = await _appointmentService.GetByIdAsync(id);
+            var apiResult = await _appointmentApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo obtener la cita desde la API.";
                 return View();
             }
 
-            var viewModel = EditAppointmentViewModel.FromDto(result.Datos!);
+            var viewModel = EditAppointmentViewModel.FromDto(apiResult.Data);
             viewModel.Statuses = GetStatusesList();
 
             return View(viewModel);
         }
 
-        // POST: AppointmentAdmController/Edit/5
+        // POST: AppointmentAdm/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(EditAppointmentViewModel viewModel)
@@ -197,16 +215,16 @@ namespace SGMC.Web.Controllers
                 }
 
                 var dto = viewModel.ToDto();
-                var result = await _appointmentService.UpdateAsync(dto);
+                var apiResult = await _appointmentApiClient.UpdateAsync(dto);
 
-                if (!result.Exitoso)
+                if (!apiResult.Success)
                 {
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al actualizar la cita en la API.";
                     viewModel.Statuses = GetStatusesList();
                     return View(viewModel);
                 }
 
-                TempData["SuccessMessage"] = "Cita actualizada correctamente";
+                TempData["SuccessMessage"] = "Cita actualizada correctamente (API).";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -217,7 +235,26 @@ namespace SGMC.Web.Controllers
             }
         }
 
-        // GET: AppointmentAdmController/Confirm/5
+        // POST: AppointmentAdm/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Delete(int id)
+        {
+            var apiResult = await _appointmentApiClient.DeleteAsync(id);
+
+            if (!apiResult.Success)
+            {
+                TempData["ErrorMessage"] = apiResult.ErrorMessage ?? "No se pudo eliminar la cita en la API.";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Cita eliminada correctamente (API).";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: AppointmentAdm/Confirm/5
         public async Task<ActionResult> Confirm(int id)
         {
             var result = await _appointmentService.ConfirmAsync(id);
@@ -234,22 +271,22 @@ namespace SGMC.Web.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
-        // GET: AppointmentAdmController/Cancel/5
+        // GET: AppointmentAdm/Cancel/5
         public async Task<ActionResult> Cancel(int id)
         {
-            var result = await _appointmentService.GetByIdAsync(id);
+            var apiResult = await _appointmentApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                TempData["ErrorMessage"] = result.Mensaje;
+                TempData["ErrorMessage"] = apiResult.ErrorMessage ?? "No se pudo obtener la cita desde la API.";
                 return RedirectToAction(nameof(Index));
             }
 
-            var viewModel = AppointmentDetailsViewModel.FromDto(result.Datos!);
+            var viewModel = AppointmentDetailsViewModel.FromDto(apiResult.Data);
             return View(viewModel);
         }
 
-        // POST: AppointmentAdmController/Cancel/5
+        // POST: AppointmentAdm/CancelConfirmed/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CancelConfirmed(int id)
@@ -274,7 +311,7 @@ namespace SGMC.Web.Controllers
             }
         }
 
-        // Métodos auxiliares
+        // Metodos auxiliares para cargar combos
         private async Task<List<PatientSelectViewModel>> GetPatientsList()
         {
             var result = await _patientService.GetActiveAsync();

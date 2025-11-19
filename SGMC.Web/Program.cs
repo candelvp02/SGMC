@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SGMC.Infrastructure.Dependencies;
 using SGMC.Persistence.Context;
+using SGMC.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,12 @@ builder.Services.AddMedicalRecordDependencies();
 builder.Services.AddNotificationDependencies();
 builder.Services.AddReportDependencies();
 builder.Services.AddSpecialtyDependencies();
+
+// Consumo de capa api
+builder.Services.AddHttpClient<IAppointmentApiClient, AppointmentApiClient>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5038/api/");
+});
 
 // MVC
 builder.Services.AddControllersWithViews();

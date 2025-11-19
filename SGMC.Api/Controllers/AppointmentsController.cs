@@ -10,78 +10,190 @@ namespace SGMC.Api.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly IAppointmentService _appointmentService;
+        private readonly ILogger<AppointmentsController> _logger;
 
-        public AppointmentsController(IAppointmentService appointmentService)
+        public AppointmentsController(
+            IAppointmentService appointmentService,
+            ILogger<AppointmentsController> logger)
         {
             _appointmentService = appointmentService;
+            _logger = logger;
         }
 
+        // GET: api/appointments
         [HttpGet]
         public async Task<ActionResult<OperationResult<List<AppointmentDto>>>> GetAll()
         {
-            var result = await _appointmentService.GetAllAsync();
-            return Ok(result);
+            try
+            {
+                var result = await _appointmentService.GetAllAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener todas las citas");
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al obtener las citas.")
+
+                );
+            }
+
         }
 
-        [HttpGet("{id}")]
+        //GET: api/appointments/5
+
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<OperationResult<AppointmentDto>>> GetById(int id)
         {
-            var result = await _appointmentService.GetByIdAsync(id);
-            if (!result.Exitoso)
-                return NotFound(result);
-            return Ok(result);
+            if (id <= 0)
+                return BadRequest(OperationResult.Fallo("El ID debe ser mayor que cero."));
+
+            try
+            {
+                var result = await _appointmentService.GetByIdAsync(id);
+                if (!result.Exitoso || result.Datos is null)
+                    return NotFound(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener la cita con ID {id}.", id);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al obtener la cita.")
+                );
+            }
         }
 
+        //POST: api/appointments
         [HttpPost]
         public async Task<ActionResult<OperationResult<AppointmentDto>>> Create([FromBody] CreateAppointmentDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(OperationResult.Fallo("Datos inválidos"));
 
-            var result = await _appointmentService.CreateAsync(dto);
-            if (!result.Exitoso)
-                return BadRequest(result);
+            try
+            {
+                var result = await _appointmentService.CreateAsync(dto);
+                if (!result.Exitoso || result.Datos is null)
+                    return BadRequest(result);
 
-            return CreatedAtAction(nameof(GetById), new { id = result.Datos?.Id }, result);
+                var newId = result.Datos.AppointmentId;
+
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = newId },
+                    result
+                );
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al crear una nueva cita.");
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al crear la cita.")
+                );
+            }
         }
 
-        [HttpPut("{id}")]
+        // PUT: api/appointments/5
+        [HttpPut("{id:int}")]
         public async Task<ActionResult<OperationResult<AppointmentDto>>> Update(int id, [FromBody] UpdateAppointmentDto dto)
         {
-            if (id != dto.Id)
-                return BadRequest(OperationResult.Fallo("ID no coincide"));
-
             if (!ModelState.IsValid)
                 return BadRequest(OperationResult.Fallo("Datos inválidos"));
 
-            var result = await _appointmentService.UpdateAsync(dto);
-            if (!result.Exitoso)
-                return BadRequest(result);
+            if (id != dto.Id)
+                return BadRequest(OperationResult.Fallo("El ID de la ruta no coincide con el ID del cuerpo."));
 
-            return Ok(result);
+            try
+            {
+                var result = await _appointmentService.UpdateAsync(dto);
+                if (!result.Exitoso)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al actualizar la cita con ID {Id}.", id);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al ")
+                );
+            }
         }
 
-        [HttpDelete("{id}")]
+        //Delete: api/Appointments/5
+        [HttpDelete("{id:int}")]
         public async Task<ActionResult<OperationResult>> Delete(int id)
         {
-            var result = await _appointmentService.DeleteAsync(id);
-            if (!result.Exitoso)
-                return BadRequest(result);
-            return Ok(result);
+            if (id <= 0)
+                return BadRequest(OperationResult.Fallo("El ID debe ser mayor que cero."));
+
+            try
+            {
+                var result = await _appointmentService.DeleteAsync(id);
+                if (!result.Exitoso)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al eliminar la cita con ID {Id}.", id);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al eliminar la cita.")
+                );
+            }
         }
 
-        [HttpGet("patient/{patientId}")]
+        //GET: api/Appointments/patient/1
+        [HttpGet("patient/{patientId:int}")]
         public async Task<ActionResult<OperationResult<List<AppointmentDto>>>> GetByPatient(int patientId)
         {
-            var result = await _appointmentService.GetByPatientIdAsync(patientId);
-            return Ok(result);
+            if (patientId <= 0)
+                return BadRequest(OperationResult.Fallo("El ID del paciente debe ser mayor que cero."));
+
+            try
+            {
+                var result = await _appointmentService.GetByPatientIdAsync(patientId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener citas para el paciente con ID {PatientId}.", patientId);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al obtener las citas del paciente.")
+                );
+            }
         }
 
-        [HttpGet("doctor/{doctorId}")]
+        // GET: api/Appointments/doctor/1
+        [HttpGet("doctor/{doctorId:int}")]
         public async Task<ActionResult<OperationResult<List<AppointmentDto>>>> GetByDoctor(int doctorId)
         {
-            var result = await _appointmentService.GetByDoctorIdAsync(doctorId);
-            return Ok(result);
+            if (doctorId <= 0)
+                return BadRequest(OperationResult.Fallo("El ID del doctor debe ser mayor que cero."));
+
+            try
+            {
+                var result = await _appointmentService.GetByDoctorIdAsync(doctorId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener citas para el doctor con ID {DoctorId}.", doctorId);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    OperationResult.Fallo("Se produjo un error inesperado al obtener las citas del doctor.")
+                );
+            }
         }
     }
 }
