@@ -28,9 +28,6 @@ namespace SGMC.Domain.Entities.Medical
 
         public virtual Patient? Patient { get; set; }
         public int MedicalRecordId { get; set; }
-        public string Datos { get; set; } = string.Empty;
-        public string? Mensaje { get; set; }
-        public bool Exitoso { get; set; }
         public int Id { get; set; }
     }
 }

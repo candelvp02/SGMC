@@ -43,6 +43,7 @@
 //                if (user == null || !user.IsActive)
 //                    return OperationResult<UserDto>.Fallo("Usuario o contraseña inválidos.");
 
+//                // Nota de seguridad: Usar BCrypt.Verify para comparar el hash
 //                if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
 //                    return OperationResult<UserDto>.Fallo("Usuario o contraseña inválidos.");
 
@@ -71,6 +72,7 @@
 //                if (await _userRepository.ExistsByEmailAsync(dto.Email))
 //                    return OperationResult<UserDto>.Fallo("El email ya está en uso.");
 
+//                // Usamos GetByIdAsync(short) o GetByIdAsync(int) según la interfaz de RoleRepository
 //                if (await _roleRepository.GetByIdAsync(dto.RoleId) == null)
 //                    return OperationResult<UserDto>.Fallo("El rol especificado no existe.");
 
@@ -78,6 +80,7 @@
 //                var user = new User
 //                {
 //                    Email = dto.Email.ToLower().Trim(),
+//                    // Usar el hashing estándar de BCrypt
 //                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
 //                    RoleId = dto.RoleId,
 //                    IsActive = true,
@@ -86,8 +89,12 @@
 
 //                var createdResult = await _userRepository.AddAsync(user);
 
-//                if (!createdResult.Exitoso || createdResult.Datos is not User createdUser)
-//                    return OperationResult<UserDto>.Fallo(createdResult.Mensaje ?? "Error al crear usuario.");
+//                if (!createdResult.Exitoso || createdResult.Datos == null)
+//                {
+//                    return OperationResult<UserDto>.Fallo(createdResult.Mensaje ?? "Error al crear usuario o tipo de retorno inválido.");
+//                }
+
+//                var createdUser = (User)createdResult.Datos;
 
 //                var userDto = MapToDto(createdUser);
 //                return OperationResult<UserDto>.Exito(userDto, "Usuario registrado correctamente.");
@@ -112,7 +119,7 @@
 //                    return OperationResult.Exito("Si la cuenta existe, recibirá un correo para restablecer la contraseña.");
 //                }
 
-//                // mock servicio de notif
+//                // mock servicio de notif (usando la firma corregida: email, userId)
 //                await _notificationService.SendPasswordResetEmailAsync(user.Email, user.UserId);
 
 //                return OperationResult.Exito("Si la cuenta existe, recibirá un correo para restablecer la contraseña.");
@@ -185,6 +192,7 @@
 //                await _userRepository.UpdateAsync(user);
 
 //                var updatedUser = await _userRepository.GetByIdWithRoleAsync(user.UserId);
+//                // Uso de '!' para forzar el tipo no nulo, ya que GetByIdWithRoleAsync no debería fallar si UpdateAsync funcionó.
 //                return OperationResult<UserDto>.Exito(MapToDto(updatedUser!), "Perfil actualizado correctamente.");
 //            }
 //            catch (Exception ex)
@@ -389,7 +397,6 @@ using SGMC.Domain.Base;
 using SGMC.Domain.Entities.Users;
 using SGMC.Domain.Repositories.System;
 using SGMC.Domain.Repositories.Users;
-using BCrypt.Net;
 
 namespace SGMC.Application.Services
 {
@@ -412,8 +419,6 @@ namespace SGMC.Application.Services
             _logger = logger;
         }
 
-        // metodos de auth
-
         public async Task<OperationResult<UserDto>> AuthenticateAsync(LoginDto dto)
         {
             if (dto == null) return OperationResult<UserDto>.Fallo("Credenciales requeridas.");
@@ -425,7 +430,6 @@ namespace SGMC.Application.Services
                 if (user == null || !user.IsActive)
                     return OperationResult<UserDto>.Fallo("Usuario o contraseña inválidos.");
 
-                // Nota de seguridad: Usar BCrypt.Verify para comparar el hash
                 if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                     return OperationResult<UserDto>.Fallo("Usuario o contraseña inválidos.");
 
@@ -435,7 +439,7 @@ namespace SGMC.Application.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error durante la autenticación: {Email}", dto.Email);
-                return OperationResult<UserDto>.Fallo($"Error del servidor al autenticar.");
+                return OperationResult<UserDto>.Fallo("Error del servidor al autenticar.");
             }
         }
 
@@ -443,40 +447,30 @@ namespace SGMC.Application.Services
         {
             if (dto == null) return OperationResult<UserDto>.Fallo("Datos de registro requeridos.");
 
-            // validaciones de campo fuera de trycatch
             var validationResult = dto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<UserDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
 
             try
             {
-                // validaciones de negocio
                 if (await _userRepository.ExistsByEmailAsync(dto.Email))
                     return OperationResult<UserDto>.Fallo("El email ya está en uso.");
 
-                // Usamos GetByIdAsync(short) o GetByIdAsync(int) según la interfaz de RoleRepository
                 if (await _roleRepository.GetByIdAsync(dto.RoleId) == null)
                     return OperationResult<UserDto>.Fallo("El rol especificado no existe.");
 
-                // create entity
                 var user = new User
                 {
                     Email = dto.Email.ToLower().Trim(),
-                    // Usar el hashing estándar de BCrypt
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                     RoleId = dto.RoleId,
                     IsActive = true,
                     CreatedAt = DateTime.Now
                 };
 
-                var createdResult = await _userRepository.AddAsync(user);
-
-                if (!createdResult.Exitoso || createdResult.Datos == null)
-                {
-                    return OperationResult<UserDto>.Fallo(createdResult.Mensaje ?? "Error al crear usuario o tipo de retorno inválido.");
-                }
-
-                var createdUser = (User)createdResult.Datos;
+                var createdUser = await _userRepository.AddAsync(user);
+                if (createdUser == null)
+                    return OperationResult<UserDto>.Fallo("Error al crear usuario.");
 
                 var userDto = MapToDto(createdUser);
                 return OperationResult<UserDto>.Exito(userDto, "Usuario registrado correctamente.");
@@ -501,7 +495,6 @@ namespace SGMC.Application.Services
                     return OperationResult.Exito("Si la cuenta existe, recibirá un correo para restablecer la contraseña.");
                 }
 
-                // mock servicio de notif (usando la firma corregida: email, userId)
                 await _notificationService.SendPasswordResetEmailAsync(user.Email, user.UserId);
 
                 return OperationResult.Exito("Si la cuenta existe, recibirá un correo para restablecer la contraseña.");
@@ -526,7 +519,6 @@ namespace SGMC.Application.Services
                 if (user.IsActive)
                     return OperationResult.Fallo("La cuenta ya está activa.");
 
-                // update entity
                 user.IsActive = true;
                 user.UpdatedAt = DateTime.Now;
 
@@ -540,13 +532,10 @@ namespace SGMC.Application.Services
             }
         }
 
-        // gestion de perfil
-
         public async Task<OperationResult<UserDto>> UpdateProfileAsync(UpdateUserDto dto)
         {
             if (dto == null) return OperationResult<UserDto>.Fallo("Datos de actualización requeridos.");
 
-            // validaciones de campo fuera de trycatch
             var validationResult = dto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<UserDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
@@ -557,25 +546,24 @@ namespace SGMC.Application.Services
                 if (user == null)
                     return OperationResult<UserDto>.Fallo("Usuario no encontrado.");
 
-                // update Email
                 if (user.Email.ToLower() != dto.Email.ToLower().Trim())
                 {
-                    // validacion de negocio
                     if (await _userRepository.ExistsByEmailAsync(dto.Email))
                         return OperationResult<UserDto>.Fallo("El nuevo email ya está en uso.");
 
                     user.Email = dto.Email.ToLower().Trim();
                 }
 
-                // update entity
                 user.RoleId = dto.RoleId;
                 user.UpdatedAt = DateTime.Now;
 
                 await _userRepository.UpdateAsync(user);
 
                 var updatedUser = await _userRepository.GetByIdWithRoleAsync(user.UserId);
-                // Uso de '!' para forzar el tipo no nulo, ya que GetByIdWithRoleAsync no debería fallar si UpdateAsync funcionó.
-                return OperationResult<UserDto>.Exito(MapToDto(updatedUser!), "Perfil actualizado correctamente.");
+
+                return OperationResult<UserDto>.Exito(
+                    MapToDto(updatedUser!),
+                    "Perfil actualizado correctamente.");
             }
             catch (Exception ex)
             {
@@ -594,11 +582,9 @@ namespace SGMC.Application.Services
                 if (user == null)
                     return OperationResult.Fallo("Usuario no encontrado.");
 
-                // verify actual password
                 if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
                     return OperationResult.Fallo("La contraseña actual es incorrecta.");
 
-                // hashing and update password
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
                 user.UpdatedAt = DateTime.Now;
 
@@ -613,8 +599,6 @@ namespace SGMC.Application.Services
             }
         }
 
-        // metodos de consulta
-
         public async Task<OperationResult<UserDto>> GetByIdAsync(int id)
         {
             if (id <= 0) return OperationResult<UserDto>.Fallo("ID de usuario inválido.");
@@ -625,7 +609,9 @@ namespace SGMC.Application.Services
                 if (user == null)
                     return OperationResult<UserDto>.Fallo("Usuario no encontrado.");
 
-                return OperationResult<UserDto>.Exito(MapToDto(user), "Usuario obtenido correctamente.");
+                return OperationResult<UserDto>.Exito(
+                    MapToDto(user),
+                    "Usuario obtenido correctamente.");
             }
             catch (Exception ex)
             {
@@ -636,7 +622,8 @@ namespace SGMC.Application.Services
 
         public async Task<OperationResult<UserDto>> GetByEmailAsync(string email)
         {
-            if (string.IsNullOrWhiteSpace(email)) return OperationResult<UserDto>.Fallo("Email requerido.");
+            if (string.IsNullOrWhiteSpace(email))
+                return OperationResult<UserDto>.Fallo("Email requerido.");
 
             try
             {
@@ -644,7 +631,9 @@ namespace SGMC.Application.Services
                 if (user == null)
                     return OperationResult<UserDto>.Fallo("Usuario no encontrado.");
 
-                return OperationResult<UserDto>.Exito(MapToDto(user), "Usuario obtenido correctamente.");
+                return OperationResult<UserDto>.Exito(
+                    MapToDto(user),
+                    "Usuario obtenido correctamente.");
             }
             catch (Exception ex)
             {
@@ -655,13 +644,16 @@ namespace SGMC.Application.Services
 
         public async Task<OperationResult<List<UserDto>>> GetByRoleAsync(short roleId)
         {
-            if (roleId <= 0) return OperationResult<List<UserDto>>.Fallo("ID de rol inválido.");
+            if (roleId <= 0)
+                return OperationResult<List<UserDto>>.Fallo("ID de rol inválido.");
 
             try
             {
                 var users = await _userRepository.GetByRoleIdAsync(roleId);
                 var userDtos = users.Select(MapToDto).ToList();
-                return OperationResult<List<UserDto>>.Exito(userDtos, $"Usuarios con Rol ID {roleId} obtenidos correctamente.");
+                return OperationResult<List<UserDto>>.Exito(
+                    userDtos,
+                    $"Usuarios con Rol ID {roleId} obtenidos correctamente.");
             }
             catch (Exception ex)
             {
@@ -676,7 +668,9 @@ namespace SGMC.Application.Services
             {
                 var users = await _userRepository.GetActiveAsync();
                 var userDtos = users.Select(MapToDto!).ToList();
-                return OperationResult<List<UserDto>>.Exito(userDtos, "Usuarios activos obtenidos correctamente.");
+                return OperationResult<List<UserDto>>.Exito(
+                    userDtos,
+                    "Usuarios activos obtenidos correctamente.");
             }
             catch (Exception ex)
             {
@@ -691,7 +685,9 @@ namespace SGMC.Application.Services
             {
                 var users = await _userRepository.GetAllWithRoleAsync();
                 var userDtos = users.Select(MapToDto).ToList();
-                return OperationResult<List<UserDto>>.Exito(userDtos, "Lista de todos los usuarios obtenida correctamente.");
+                return OperationResult<List<UserDto>>.Exito(
+                    userDtos,
+                    "Lista de todos los usuarios obtenida correctamente.");
             }
             catch (Exception ex)
             {
@@ -699,8 +695,6 @@ namespace SGMC.Application.Services
                 return OperationResult<List<UserDto>>.Fallo($"Error al obtener usuarios: {ex.Message}");
             }
         }
-
-        // metodos crud
 
         public async Task<OperationResult> DeleteAsync(int id)
         {
@@ -735,7 +729,6 @@ namespace SGMC.Application.Services
                 if (!user.IsActive)
                     return OperationResult.Fallo("El usuario ya está inactivo.");
 
-                // update entity
                 user.IsActive = false;
                 user.UpdatedAt = DateTime.Now;
 
@@ -749,8 +742,6 @@ namespace SGMC.Application.Services
             }
         }
 
-        // private mapping
-
         private static UserDto MapToDto(User user)
         {
             if (user == default)
@@ -758,13 +749,13 @@ namespace SGMC.Application.Services
 
             return new UserDto
             {
-                UserId = user!.UserId,
-                Email = user!.Email,
-                RoleId = user!.RoleId,
+                UserId = user.UserId,
+                Email = user.Email,
+                RoleId = user.RoleId,
                 RoleName = user.Role?.RoleName ?? "N/A",
-                IsActive = user!.IsActive,
-                CreatedAt = user!.CreatedAt,
-                UpdatedAt = user!.UpdatedAt
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
             };
         }
     }

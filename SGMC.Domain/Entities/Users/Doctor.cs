@@ -46,9 +46,6 @@ namespace SGMC.Domain.Entities.Users
         public virtual ICollection<MedicalRecord> MedicalRecords { get; set; } = new List<MedicalRecord>();
 
         public virtual Specialty? Specialty { get; set; }
-        public bool Exitoso { get; set; }
-        public string? Mensaje { get; set; }
-        public string Datos { get; set; } = string.Empty;
 
         public static explicit operator Doctor(string v)
         {

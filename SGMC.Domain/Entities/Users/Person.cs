@@ -25,7 +25,5 @@ namespace SGMC.Domain.Entities.Users
 
         public virtual User? User { get; set; }
         public int UserId { get; set; }
-        public string? Mensaje { get; set; }
-        public bool Exitoso { get; set; }
     }
 }

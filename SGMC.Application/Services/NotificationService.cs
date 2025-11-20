@@ -46,7 +46,6 @@ namespace SGMC.Application.Services
                 {
                     RecipientId = dto.RecipientId,
                     Title = dto.Title!,
-                    Message = dto.Message,
                     IsRead = false,
                     CreatedAt = DateTime.Now
                 };
@@ -142,7 +141,6 @@ namespace SGMC.Application.Services
                 NotificationId = n.NotificationId,
                 RecipientId = n.RecipientId,
                 Title = n.Title,
-                Message = n.Message,
                 IsRead = n.IsRead,
               //  CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt

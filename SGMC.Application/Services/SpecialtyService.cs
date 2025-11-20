@@ -42,11 +42,15 @@
 //                };
 
 //                var repoResult = await _repository.AddAsync(specialty);
+
 //                if (!repoResult.Exitoso)
 //                    return OperationResult<SpecialtyDto>.Fallo(repoResult.Mensaje ?? "No se pudo crear la especialidad");
 
-//                if (repoResult.Datos is not Specialty created)
-//                    return OperationResult<SpecialtyDto>.Fallo("El repositorio no devolvió una Specialty válida");
+//                if (repoResult.Datos == null)
+//                    return OperationResult<SpecialtyDto>.Fallo("El repositorio no devolvió una Specialty válida después de guardarla.");
+
+//                // Asigno el resultado al DTO para el éxito
+//                var created = (Specialty)repoResult.Datos;
 
 //                return OperationResult<SpecialtyDto>.Exito(MapToDto(created), "Especialidad creada correctamente");
 //            }
@@ -227,14 +231,12 @@ namespace SGMC.Application.Services
         {
             if (dto == null) return OperationResult<SpecialtyDto>.Fallo("Datos requeridos.");
 
-            // validaciones de campo fuera de trycatch
             var validationResult = dto.IsValidDto();
             if (!validationResult.Exitoso)
-                return OperationResult<SpecialtyDto>.Fallo(validationResult.Mensaje);
+                return OperationResult<SpecialtyDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
 
             try
             {
-                // validaciones de negocio
                 if (await _repository.ExistsByNameAsync(dto.SpecialtyName))
                     return OperationResult<SpecialtyDto>.Fallo("Ya existe una especialidad con ese nombre.");
 
@@ -245,18 +247,13 @@ namespace SGMC.Application.Services
                     CreatedAt = DateTime.Now
                 };
 
-                var repoResult = await _repository.AddAsync(specialty);
+                var created = await _repository.AddAsync(specialty);
+                if (created == null)
+                    return OperationResult<SpecialtyDto>.Fallo("No se pudo crear la especialidad.");
 
-                if (!repoResult.Exitoso)
-                    return OperationResult<SpecialtyDto>.Fallo(repoResult.Mensaje ?? "No se pudo crear la especialidad");
-
-                if (repoResult.Datos == null)
-                    return OperationResult<SpecialtyDto>.Fallo("El repositorio no devolvió una Specialty válida después de guardarla.");
-
-                // Asigno el resultado al DTO para el éxito
-                var created = (Specialty)repoResult.Datos;
-                
-                return OperationResult<SpecialtyDto>.Exito(MapToDto(created), "Especialidad creada correctamente");
+                return OperationResult<SpecialtyDto>.Exito(
+                    MapToDto(created),
+                    "Especialidad creada correctamente");
             }
             catch (Exception ex)
             {
@@ -269,7 +266,6 @@ namespace SGMC.Application.Services
         {
             if (dto == null) return OperationResult<SpecialtyDto>.Fallo("Datos requeridos.");
 
-            // validaciones de campo fuera de trycatch
             var validationResult = dto.IsValidDto();
             if (!validationResult.Exitoso)
                 return OperationResult<SpecialtyDto>.Fallo(validationResult.Mensaje, validationResult.Errores);
@@ -280,8 +276,8 @@ namespace SGMC.Application.Services
                 if (existing == null)
                     return OperationResult<SpecialtyDto>.Fallo("Especialidad no encontrada");
 
-                // validaciones de negocio
-                if (existing.SpecialtyName != dto.SpecialtyName && await _repository.ExistsByNameAsync(dto.SpecialtyName))
+                if (existing.SpecialtyName != dto.SpecialtyName &&
+                    await _repository.ExistsByNameAsync(dto.SpecialtyName))
                     return OperationResult<SpecialtyDto>.Fallo("Ya existe otra especialidad con ese nombre.");
 
                 existing.SpecialtyName = dto.SpecialtyName;
@@ -290,7 +286,9 @@ namespace SGMC.Application.Services
 
                 await _repository.UpdateAsync(existing);
 
-                return OperationResult<SpecialtyDto>.Exito(MapToDto(existing), "Especialidad actualizada correctamente");
+                return OperationResult<SpecialtyDto>.Exito(
+                    MapToDto(existing),
+                    "Especialidad actualizada correctamente");
             }
             catch (Exception ex)
             {
@@ -320,13 +318,14 @@ namespace SGMC.Application.Services
             }
         }
 
-        // metodos de consulta
         public async Task<OperationResult<List<SpecialtyDto>>> GetAllAsync()
         {
             try
             {
                 var specialties = await _repository.GetAllAsync();
-                return OperationResult<List<SpecialtyDto>>.Exito(specialties.Select(MapToDto).ToList(), "Especialidades obtenidas correctamente");
+                return OperationResult<List<SpecialtyDto>>.Exito(
+                    specialties.Select(MapToDto).ToList(),
+                    "Especialidades obtenidas correctamente");
             }
             catch (Exception ex)
             {
@@ -345,7 +344,9 @@ namespace SGMC.Application.Services
                 if (specialty == null)
                     return OperationResult<SpecialtyDto>.Fallo("Especialidad no encontrada");
 
-                return OperationResult<SpecialtyDto>.Exito(MapToDto(specialty), "Especialidad obtenida correctamente");
+                return OperationResult<SpecialtyDto>.Exito(
+                    MapToDto(specialty),
+                    "Especialidad obtenida correctamente");
             }
             catch (Exception ex)
             {
@@ -359,7 +360,9 @@ namespace SGMC.Application.Services
             try
             {
                 var specialties = await _repository.GetActiveAsync();
-                return OperationResult<List<SpecialtyDto>>.Exito(specialties.Select(MapToDto).ToList(), "Especialidades activas obtenidas correctamente");
+                return OperationResult<List<SpecialtyDto>>.Exito(
+                    specialties.Select(MapToDto).ToList(),
+                    "Especialidades activas obtenidas correctamente");
             }
             catch (Exception ex)
             {
@@ -375,7 +378,9 @@ namespace SGMC.Application.Services
                 if (id <= 0) return OperationResult<bool>.Exito(false, "ID inválido");
 
                 var exists = await _repository.ExistsAsync(id);
-                return OperationResult<bool>.Exito(exists, exists ? "La especialidad existe" : "La especialidad no existe");
+                return OperationResult<bool>.Exito(
+                    exists,
+                    exists ? "La especialidad existe" : "La especialidad no existe");
             }
             catch (Exception ex)
             {
@@ -388,10 +393,13 @@ namespace SGMC.Application.Services
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(name)) return OperationResult<bool>.Fallo("El nombre es requerido");
+                if (string.IsNullOrWhiteSpace(name))
+                    return OperationResult<bool>.Fallo("El nombre es requerido");
 
                 var exists = await _repository.ExistsByNameAsync(name);
-                return OperationResult<bool>.Exito(exists, exists ? "Ya existe una especialidad con ese nombre" : "El nombre está disponible");
+                return OperationResult<bool>.Exito(
+                    exists,
+                    exists ? "Ya existe una especialidad con ese nombre" : "El nombre está disponible");
             }
             catch (Exception ex)
             {
@@ -400,7 +408,6 @@ namespace SGMC.Application.Services
             }
         }
 
-        // private mapping
         private static SpecialtyDto MapToDto(Specialty s) => new()
         {
             SpecialtyId = s.SpecialtyId,

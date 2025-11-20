@@ -13,9 +13,9 @@ namespace SGMC.Persistence.Configuration.System
             entity.ToTable("Notifications", "system");
 
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
-            entity.Property(e => e.Message)
-                .IsRequired()
-                .HasColumnType("text");
+          //  entity.Property(e => e.Message)
+           //     .IsRequired()
+           //     .HasColumnType("text");
             entity.Property(e => e.SentAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
