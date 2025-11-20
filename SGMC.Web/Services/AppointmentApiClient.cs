@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using SGMC.Application.Dto.Appointments;
+using SGMC.Web.Models;
 
 namespace SGMC.Web.Services
 {
@@ -10,12 +11,6 @@ namespace SGMC.Web.Services
     {
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions;
-        private class OperationResultDto<T>
-        {
-            public bool Exitoso { get; set; }
-            public string? Mensaje { get; set; }
-            public T? Datos { get; set; }
-        }
 
         public AppointmentApiClient(HttpClient httpClient)
         {

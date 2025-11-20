@@ -655,11 +655,28 @@ namespace SGMC.Application.Services
 
         // ------------------ QUERIES ------------------
 
+        //public async Task<OperationResult<List<PatientDto>>> GetAllAsync()
+        //{
+        //    try
+        //    {
+        //        var patients = await _repository.GetAllWithDetailsAsync();
+        //        return OperationResult<List<PatientDto>>.Exito(
+        //            patients.Select(MapToDto).ToList(),
+        //            "Pacientes obtenidos correctamente"
+        //        );
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error al obtener pacientes");
+        //        return OperationResult<List<PatientDto>>.Fallo("Error al obtener pacientes");
+        //    }
+        //}
         public async Task<OperationResult<List<PatientDto>>> GetAllAsync()
         {
             try
             {
                 var patients = await _repository.GetAllWithDetailsAsync();
+
                 return OperationResult<List<PatientDto>>.Exito(
                     patients.Select(MapToDto).ToList(),
                     "Pacientes obtenidos correctamente"
@@ -667,8 +684,16 @@ namespace SGMC.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener pacientes");
-                return OperationResult<List<PatientDto>>.Fallo("Error al obtener pacientes");
+                var innerMessage =
+                    ex.InnerException?.InnerException?.Message
+                    ?? ex.InnerException?.Message
+                    ?? ex.Message;
+
+                _logger.LogError(ex, "Error al obtener pacientes: {Message}", innerMessage);
+
+                return OperationResult<List<PatientDto>>.Fallo(
+                    $"Error al obtener pacientes: {innerMessage}"
+                );
             }
         }
 

@@ -95,11 +95,27 @@ namespace SGMC.Persistence.Repositories.Appointments
 
         public async Task<IEnumerable<Appointment>> GetAllWithDetailsAsync()
         {
-            return await _dbSet
+            try
+            {
+                var list = await _dbSet
                 .Include(a => a.Status)
                 .Include(a => a.Patient).ThenInclude(p => p!.PatientNavigation!)
                 .Include(a => a.Doctor).ThenInclude(d => d!.DoctorNavigation!)
                 .ToListAsync();
+
+                return list;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving appointments with details: {ex.Message}");
+                throw;
+            }
+
+            //return await _dbSet
+            //    .Include(a => a.Status)
+            //    .Include(a => a.Patient).ThenInclude(p => p!.PatientNavigation!)
+            //    .Include(a => a.Doctor).ThenInclude(d => d!.DoctorNavigation!)
+            //    .ToListAsync();
         }
 
         public async Task<IEnumerable<Appointment>> GetByPatientIdWithDetailsAsync(int patientId)

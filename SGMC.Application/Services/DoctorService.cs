@@ -628,14 +628,31 @@ namespace SGMC.Application.Services
             }
         }
 
-       
+
         //   METODOS DE CONSULTA
 
+        //public async Task<OperationResult<List<DoctorDto>>> GetAllAsync()
+        //{
+        //    try
+        //    {
+        //        var doctors = await _repository.GetAllWithDetailsAsync();
+        //        return OperationResult<List<DoctorDto>>.Exito(
+        //            doctors.Select(MapToDtoWithDetails).ToList(),
+        //            "Doctores obtenidos correctamente"
+        //        );
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error al obtener doctores");
+        //        return OperationResult<List<DoctorDto>>.Fallo("Error al obtener doctores");
+        //    }
+        //}
         public async Task<OperationResult<List<DoctorDto>>> GetAllAsync()
         {
             try
             {
                 var doctors = await _repository.GetAllWithDetailsAsync();
+
                 return OperationResult<List<DoctorDto>>.Exito(
                     doctors.Select(MapToDtoWithDetails).ToList(),
                     "Doctores obtenidos correctamente"
@@ -643,8 +660,16 @@ namespace SGMC.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al obtener doctores");
-                return OperationResult<List<DoctorDto>>.Fallo("Error al obtener doctores");
+                var innerMessage =
+                    ex.InnerException?.InnerException?.Message
+                    ?? ex.InnerException?.Message
+                    ?? ex.Message;
+
+                _logger.LogError(ex, "Error al obtener doctores: {Message}", innerMessage);
+
+                return OperationResult<List<DoctorDto>>.Fallo(
+                    $"Error al obtener doctores: {innerMessage}"
+                );
             }
         }
 
