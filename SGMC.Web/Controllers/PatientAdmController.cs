@@ -55,36 +55,63 @@ namespace SGMC.Web.Controllers
         }
 
         // POST: PatientAdmController/Create
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<ActionResult> Create(RegisterPatientDto registerPatientDto)
+        //{
+        //    try
+        //    {
+        //        if (!ModelState.IsValid)
+        //        {
+        //            await LoadInsuranceProviders();
+        //            return View(registerPatientDto);
+        //        }
+
+        //        OperationResult<PatientDto> result = await _patientService.CreateAsync(registerPatientDto);
+
+        //        if (!result.Exitoso)
+        //        {
+        //            ViewBag.ErrorMessage = result.Mensaje;
+        //            await LoadInsuranceProviders();
+        //            return View(registerPatientDto);
+        //        }
+
+        //        TempData["SuccessMessage"] = "Paciente creado correctamente";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var innerMessage =
+        //            ex.InnerException?.InnerException?.Message
+        //            ?? ex.InnerException?.Message
+        //            ?? ex.Message;
+
+        //        ViewBag.ErrorMessage = $"Error al crear paciente: {innerMessage}";
+        //        await LoadInsuranceProviders();
+        //        return View(registerPatientDto);
+        //    }
+        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(RegisterPatientDto registerPatientDto)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    await LoadInsuranceProviders();
-                    return View(registerPatientDto);
-                }
-
-                OperationResult<PatientDto> result = await _patientService.CreateAsync(registerPatientDto);
-
-                if (!result.Exitoso)
-                {
-                    ViewBag.ErrorMessage = result.Mensaje;
-                    await LoadInsuranceProviders();
-                    return View(registerPatientDto);
-                }
-
-                TempData["SuccessMessage"] = "Paciente creado correctamente";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                ViewBag.ErrorMessage = $"Error al crear paciente: {ex.Message}";
                 await LoadInsuranceProviders();
                 return View(registerPatientDto);
             }
+
+            OperationResult<PatientDto> result = await _patientService.CreateAsync(registerPatientDto);
+
+            if (!result.Exitoso)
+            {
+                ViewBag.ErrorMessage = result.Mensaje;
+                await LoadInsuranceProviders();
+                return View(registerPatientDto);
+            }
+
+            TempData["SuccessMessage"] = "Paciente creado correctamente";
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: PatientAdmController/Edit/5
@@ -178,6 +205,16 @@ namespace SGMC.Web.Controllers
         private async Task LoadInsuranceProviders()
         {
             var insuranceResult = await _insuranceProviderService.GetActiveAsync();
+
+            if (!insuranceResult.Exitoso || insuranceResult.Datos == null)
+            {
+                ViewBag.InsuranceProviders = new List<InsuranceProviderViewModel>();
+                return;
+            }
+
+            ViewBag.InsuranceProviders = insuranceResult.Datos
+                .Select(InsuranceProviderViewModel.FromDto)
+                .ToList();
         }
     }
 }

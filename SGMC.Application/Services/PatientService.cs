@@ -116,8 +116,13 @@ namespace SGMC.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al crear paciente");
-                return OperationResult<PatientDto>.Fallo($"Error al crear paciente: {ex.Message}");
+                var innerMessage =
+                    ex.InnerException?.InnerException?.Message
+                    ?? ex.InnerException?.Message
+                    ?? ex.Message;
+
+                _logger.LogError(ex, "Error al crear paciente: {Message}", innerMessage);
+                return OperationResult<PatientDto>.Fallo($"Error al crear paciente: {innerMessage}");
             }
         }
 
@@ -161,8 +166,13 @@ namespace SGMC.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al actualizar paciente {Id}", dto?.PatientId);
-                return OperationResult<PatientDto>.Fallo($"Error al actualizar paciente: {ex.Message}");
+                var innerMessage =
+                    ex.InnerException?.InnerException?.Message
+                    ?? ex.InnerException?.Message
+                    ?? ex.Message;
+
+                _logger.LogError(ex, "Error al actualizar paciente {Id}: {Message}", dto?.PatientId, innerMessage);
+                return OperationResult<PatientDto>.Fallo($"Error al actualizar paciente: {innerMessage}");
             }
         }
 
