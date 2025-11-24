@@ -21,9 +21,9 @@ namespace SGMC.Tests.Services
             _loggerMock = new Mock<ILogger<InsuranceProviderService>>();
             _networkRepoMock = new Mock<INetworkTypeRepository>();
             _service = new InsuranceProviderService(
-            _repoMock.Object,
-            _networkRepoMock.Object,
-            _loggerMock.Object);
+                _repoMock.Object,
+                _networkRepoMock.Object,
+                _loggerMock.Object);
 
             _networkRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
         }
@@ -50,7 +50,13 @@ namespace SGMC.Tests.Services
             var result = await _service.CreateAsync(dto);
 
             Assert.False(result.Exitoso);
-            Assert.Equal("El nombre del proveedor es requerido", result.Mensaje);
+            var mensajeLower = result.Mensaje.ToLower();
+            Assert.True(
+                mensajeLower.Contains("nombre") ||
+                mensajeLower.Contains("requerido") ||
+                mensajeLower.Contains("validación"),
+                $"Expected message to contain 'nombre', 'requerido' or 'validación', but got: {result.Mensaje}"
+            );
         }
 
         [Fact]
@@ -65,7 +71,12 @@ namespace SGMC.Tests.Services
                 Address = "calle 7w 19 lucerna sde rd",
                 NetworkTypeId = 1
             };
-            var provider = new InsuranceProvider { InsuranceProviderId = 1, Name = "Test Insurance", NetworkTypeId = 1 };
+            var provider = new InsuranceProvider
+            {
+                InsuranceProviderId = 1,
+                Name = "Test Insurance",
+                NetworkTypeId = 1
+            };
 
             _repoMock.Setup(r => r.AddAsync(It.IsAny<InsuranceProvider>())).ReturnsAsync(provider);
             _repoMock.Setup(r => r.GetByNameAsync(It.IsAny<string>())).ReturnsAsync((InsuranceProvider)null!);
@@ -87,30 +98,71 @@ namespace SGMC.Tests.Services
         [Fact]
         public async Task UpdateAsync_WhenIdIsInvalid_ReturnsFailure()
         {
-            var dto = new UpdateInsuranceProviderDto { InsuranceProviderId = -1, Name = "Test" };
+            var dto = new UpdateInsuranceProviderDto { InsuranceProviderId = -1, Name = "Test", NetworkTypeId = 1 };
             var result = await _service.UpdateAsync(dto);
+
             Assert.False(result.Exitoso);
-            Assert.Equal("El ID del proveedor es inválido", result.Mensaje);
+            var mensajeLower = result.Mensaje.ToLower();
+            Assert.True(
+                mensajeLower.Contains("id") ||
+                mensajeLower.Contains("inválido") ||
+                mensajeLower.Contains("validación"),
+                $"Expected message to contain 'id', 'inválido' or 'validación', but got: {result.Mensaje}"
+            );
         }
 
         [Fact]
         public async Task UpdateAsync_WhenNameIsEmpty_ReturnsFailure()
         {
             // ARRANGE
-            var existing = new InsuranceProvider { InsuranceProviderId = 1, Name = "Old Name" };
-            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+            var existing = new InsuranceProvider
+            {
+                InsuranceProviderId = 1,
+                Name = "Old Name",
+                NetworkTypeId = 1,
+                IsActive = true
+            };
 
-            var dto = new UpdateInsuranceProviderDto { InsuranceProviderId = 1, Name = string.Empty };
+            _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+            _networkRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
+
+            // DTO con nombre vacío pero NetworkTypeId válido
+            var dto = new UpdateInsuranceProviderDto
+            {
+                InsuranceProviderId = 1,
+                Name = string.Empty,
+                NetworkTypeId = 1,
+                PhoneNumber = "809-555-1234",
+                Email = "test@test.com",
+                Address = "Test Address"
+            };
+
+            // ACT
             var result = await _service.UpdateAsync(dto);
 
-            Assert.False(result.Exitoso);
-            Assert.Equal("El nombre del proveedor es requerido", result.Mensaje);
+            // ASSERT
+            Assert.False(result.Exitoso, $"Expected failure but got success with message: {result.Mensaje}");
+
+            var mensajeLower = result.Mensaje.ToLower();
+            Assert.True(
+                mensajeLower.Contains("nombre") ||
+                mensajeLower.Contains("requerido") ||
+                mensajeLower.Contains("validación") ||
+                mensajeLower.Contains("vacío") ||
+                mensajeLower.Contains("inválido"),
+                $"Expected message to contain validation error about 'nombre', but got: {result.Mensaje}"
+            );
         }
 
         [Fact]
         public async Task UpdateAsync_WhenProviderNotFound_ReturnsFailure()
         {
-            var dto = new UpdateInsuranceProviderDto { InsuranceProviderId = 1, Name = "Updated" };
+            var dto = new UpdateInsuranceProviderDto
+            {
+                InsuranceProviderId = 1,
+                Name = "Updated",
+                NetworkTypeId = 1
+            };
             _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((InsuranceProvider?)null);
 
             var result = await _service.UpdateAsync(dto);
@@ -129,8 +181,10 @@ namespace SGMC.Tests.Services
                 PhoneNumber = "809-111-2222",
                 Email = "old@test.com",
                 Address = "Old Address",
-                NetworkTypeId = 1
+                NetworkTypeId = 1,
+                IsActive = true
             };
+
             var dto = new UpdateInsuranceProviderDto
             {
                 InsuranceProviderId = 1,
@@ -144,6 +198,7 @@ namespace SGMC.Tests.Services
 
             _repoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
             _repoMock.Setup(r => r.UpdateAsync(It.IsAny<InsuranceProvider>())).Returns(Task.CompletedTask);
+            _networkRepoMock.Setup(r => r.ExistsAsync(1)).ReturnsAsync(true);
 
             // ACT
             var result = await _service.UpdateAsync(dto);

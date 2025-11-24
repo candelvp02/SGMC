@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+		<PackageReference Include="FluentAssertions" Version="8.8.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.7" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
 		<PackageReference Include="Moq" Version="4.20.70" />
@@ -21,13 +22,13 @@
 		</PackageReference>
 	</ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SGMC.Domain\SGMC.Domain.csproj" />
-    <ProjectReference Include="..\SGMC.Persistence\SGMC.Persistence.csproj" />
-  </ItemGroup>
-
+	<ItemGroup>
+		<ProjectReference Include="..\SGMC.Domain\SGMC.Domain.csproj" />
+		<ProjectReference Include="..\SGMC.Persistence\SGMC.Persistence.csproj" />
+		<ProjectReference Include="..\SGMC.Web\SGMC.Web.csproj" />
+	</ItemGroup>
 </Project>
