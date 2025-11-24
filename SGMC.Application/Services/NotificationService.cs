@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SGMC.Application.Dto.System;
-using SGMC.Application.Extensions;
 using SGMC.Application.Interfaces.Service;
+using SGMC.Application.Validators.System;
 using SGMC.Domain.Base;
 using SGMC.Domain.Entities.System;
 using SGMC.Domain.Repositories.System;
@@ -55,7 +55,7 @@ namespace SGMC.Application.Services
 
                 _logger.LogInformation("Notificación creada para usuario {Id}", dto.RecipientId);
 
-                // Lógica de envío de email/push real iría aquí
+                // Logica de envío de email/push real iría aquí
 
                 return OperationResult.Exito("Notificación enviada y registrada correctamente.");
             }
@@ -72,7 +72,6 @@ namespace SGMC.Application.Services
 
             try
             {
-                // Asumo método GetPendingByUserIdAsync en el repositorio
                 var notifications = await _repository.GetPendingByUserIdAsync(userId);
                 var dtoList = notifications.Select(MapToDto).ToList();
 
@@ -118,8 +117,6 @@ namespace SGMC.Application.Services
 
             _logger.LogWarning("SIMULACIÓN: Email de restablecimiento de contraseña enviado a {Email} (User ID: {UserId}).", recipientEmail, userId);
 
-            // En un sistema real, aquí se llamaría al servicio de infraestructura
-
             return Task.FromResult(OperationResult.Exito($"Email de restablecimiento enviado a {recipientEmail}."));
         }
 
@@ -142,7 +139,6 @@ namespace SGMC.Application.Services
                 RecipientId = n.RecipientId,
                 Title = n.Title,
                 IsRead = n.IsRead,
-              //  CreatedAt = n.CreatedAt,
                 UpdatedAt = n.UpdatedAt
             };
         }

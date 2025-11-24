@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SGMC.Application.Dto.Medical;
-using SGMC.Application.Extensions;
 using SGMC.Application.Interfaces.Service;
+using SGMC.Application.Validators.Medical;
 using SGMC.Domain.Base;
 using SGMC.Domain.Entities.Medical;
 using SGMC.Domain.Repositories.Medical;

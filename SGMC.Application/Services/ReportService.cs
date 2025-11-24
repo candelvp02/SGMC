@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SGMC.Application.Dto.Appointments;
-using SGMC.Application.Extensions;
 using SGMC.Application.Interfaces.Service;
+using SGMC.Application.Validators.Appointments;
 using SGMC.Domain.Base;
 using SGMC.Domain.Entities.Appointments;
 using SGMC.Domain.Repositories.Appointments;
@@ -223,7 +223,6 @@ namespace SGMC.Application.Services
 
             return appointments;
         }
-
 
         // metodos de generacion de Reportes
         private byte[] GeneratePdfReport(List<Appointment> appointments, ReportFilterDto filter)

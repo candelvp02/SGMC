@@ -1,5 +1,5 @@
 ﻿using SGMC.Application.Dto.Appointments;
-using SGMC.Application.Extensions;
+using SGMC.Application.Validators.Appointments;
 using SGMC.Application.Interfaces.Service;
 using SGMC.Domain.Base;
 using SGMC.Domain.Entities.Appointments;

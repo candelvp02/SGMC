@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SGMC.Application.Dto.Insurance;
-using SGMC.Application.Extensions;
 using SGMC.Application.Interfaces.Service;
+using SGMC.Application.Validators.Insurance;
 using SGMC.Domain.Base;
 using SGMC.Domain.Entities.Insurance;
 using SGMC.Domain.Repositories.Insurance;
