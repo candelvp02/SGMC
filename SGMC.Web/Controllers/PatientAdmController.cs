@@ -1,50 +1,50 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Users;
 using SGMC.Application.Interfaces.Service;
-using SGMC.Domain.Base;
 using SGMC.Web.Models.Patient;
+using SGMC.Web.Services;
 
 namespace SGMC.Web.Controllers
 {
     public class PatientAdmController : Controller
     {
-        private readonly IPatientService _patientService;
+        private readonly IPatientApiClient _patientApiClient;
         private readonly IInsuranceProviderService _insuranceProviderService;
 
         public PatientAdmController(
-            IPatientService patientService,
+            IPatientApiClient patientApiClient,
             IInsuranceProviderService insuranceProviderService)
         {
-            _patientService = patientService;
+            _patientApiClient = patientApiClient;
             _insuranceProviderService = insuranceProviderService;
         }
 
         // GET: PatientAdmController
         public async Task<ActionResult> Index()
         {
-            OperationResult<List<PatientDto>> result = await _patientService.GetAllAsync();
+            var apiResult = await _patientApiClient.GetAllAsync();
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
-                return View();
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al obtener los pacientes desde la API.";
+                return View(new List<PatientDto>());
             }
 
-            return View(result.Datos);
+            return View(apiResult.Data);
         }
 
         // GET: PatientAdmController/Details/5
         public async Task<ActionResult> Details(int id)
         {
-            OperationResult<PatientDto> result = await _patientService.GetByIdWithDetailsAsync(id);
+            var apiResult = await _patientApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo obtener el paciente desde la API.";
                 return View();
             }
 
-            return View(result.Datos);
+            return View(apiResult.Data);
         }
 
         // GET: PatientAdmController/Create
@@ -55,42 +55,6 @@ namespace SGMC.Web.Controllers
         }
 
         // POST: PatientAdmController/Create
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<ActionResult> Create(RegisterPatientDto registerPatientDto)
-        //{
-        //    try
-        //    {
-        //        if (!ModelState.IsValid)
-        //        {
-        //            await LoadInsuranceProviders();
-        //            return View(registerPatientDto);
-        //        }
-
-        //        OperationResult<PatientDto> result = await _patientService.CreateAsync(registerPatientDto);
-
-        //        if (!result.Exitoso)
-        //        {
-        //            ViewBag.ErrorMessage = result.Mensaje;
-        //            await LoadInsuranceProviders();
-        //            return View(registerPatientDto);
-        //        }
-
-        //        TempData["SuccessMessage"] = "Paciente creado correctamente";
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var innerMessage =
-        //            ex.InnerException?.InnerException?.Message
-        //            ?? ex.InnerException?.Message
-        //            ?? ex.Message;
-
-        //        ViewBag.ErrorMessage = $"Error al crear paciente: {innerMessage}";
-        //        await LoadInsuranceProviders();
-        //        return View(registerPatientDto);
-        //    }
-        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(RegisterPatientDto registerPatientDto)
@@ -101,32 +65,32 @@ namespace SGMC.Web.Controllers
                 return View(registerPatientDto);
             }
 
-            OperationResult<PatientDto> result = await _patientService.CreateAsync(registerPatientDto);
+            var apiResult = await _patientApiClient.CreateAsync(registerPatientDto);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al crear el paciente en la API.";
                 await LoadInsuranceProviders();
                 return View(registerPatientDto);
             }
 
-            TempData["SuccessMessage"] = "Paciente creado correctamente";
+            TempData["SuccessMessage"] = "Paciente creado correctamente (API).";
             return RedirectToAction(nameof(Index));
         }
 
         // GET: PatientAdmController/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
-            OperationResult<PatientDto> result = await _patientService.GetByIdAsync(id);
+            var apiResult = await _patientApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo obtener el paciente desde la API.";
                 return View();
             }
 
             await LoadInsuranceProviders();
-            return View(result.Datos);
+            return View(apiResult.Data);
         }
 
         // POST: PatientAdmController/Edit/5
@@ -142,16 +106,16 @@ namespace SGMC.Web.Controllers
                     return View(updatePatientDto);
                 }
 
-                OperationResult<PatientDto> result = await _patientService.UpdateAsync(updatePatientDto);
+                var apiResult = await _patientApiClient.UpdateAsync(updatePatientDto);
 
-                if (!result.Exitoso)
+                if (!apiResult.Success)
                 {
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al actualizar el paciente en la API.";
                     await LoadInsuranceProviders();
                     return View(updatePatientDto);
                 }
 
-                TempData["SuccessMessage"] = "Paciente actualizado correctamente";
+                TempData["SuccessMessage"] = "Paciente actualizado correctamente (API).";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -165,15 +129,15 @@ namespace SGMC.Web.Controllers
         // GET: PatientAdmController/Delete/5
         public async Task<ActionResult> Delete(int id)
         {
-            OperationResult<PatientDto> result = await _patientService.GetByIdAsync(id);
+            var apiResult = await _patientApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo obtener el paciente desde la API.";
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(result.Datos);
+            return View(apiResult.Data);
         }
 
         // POST: PatientAdmController/Delete/5
@@ -183,15 +147,15 @@ namespace SGMC.Web.Controllers
         {
             try
             {
-                OperationResult result = await _patientService.DeleteAsync(id);
+                var apiResult = await _patientApiClient.DeleteAsync(id);
 
-                if (!result.Exitoso)
+                if (!apiResult.Success)
                 {
-                    TempData["ErrorMessage"] = result.Mensaje;
+                    TempData["ErrorMessage"] = apiResult.ErrorMessage ?? "Error al desactivar paciente en la API.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                TempData["SuccessMessage"] = "Paciente desactivado correctamente";
+                TempData["SuccessMessage"] = "Paciente desactivado correctamente (API).";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

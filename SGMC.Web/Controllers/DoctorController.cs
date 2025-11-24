@@ -1,45 +1,44 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SGMC.Application.Dto.Users;
-using SGMC.Application.Interfaces.Service;
-using SGMC.Domain.Base;
+using SGMC.Web.Services;
 
 namespace SGMC.Web.Controllers
 {
     public class DoctorController : Controller
     {
-        private readonly IDoctorService _doctorService;
+        private readonly IDoctorApiClient _doctorApiClient;
 
-        public DoctorController(IDoctorService doctorService)
+        public DoctorController(IDoctorApiClient doctorApiClient)
         {
-            _doctorService = doctorService;
+            _doctorApiClient = doctorApiClient;
         }
 
         // GET: Doctor
         public async Task<ActionResult> Index()
         {
-            OperationResult<List<DoctorDto>> result = await _doctorService.GetAllAsync();
+            var apiResult = await _doctorApiClient.GetAllAsync();
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al obtener los doctores desde la API.";
                 return View(new List<DoctorDto>());
             }
 
-            return View(result.Datos);
+            return View(apiResult.Data);
         }
 
         // GET: Doctor/Details/5
         public async Task<ActionResult> Details(int id)
         {
-            OperationResult<DoctorDto> result = await _doctorService.GetByIdWithDetailsAsync(id);
+            var apiResult = await _doctorApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo obtener el doctor desde la API.";
                 return View();
             }
 
-            return View(result.Datos);
+            return View(apiResult.Data);
         }
 
         // GET: Doctor/Create
@@ -60,18 +59,19 @@ namespace SGMC.Web.Controllers
                     return View(registerDoctorDto);
                 }
 
-                OperationResult<DoctorDto> result = await _doctorService.CreateAsync(registerDoctorDto);
+                var apiResult = await _doctorApiClient.CreateAsync(registerDoctorDto);
 
-                if (!result.Exitoso)
+                if (!apiResult.Success)
                 {
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al crear el doctor en la API.";
                     return View(registerDoctorDto);
                 }
 
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
+                ViewBag.ErrorMessage = $"Error al crear doctor: {ex.Message}";
                 return View(registerDoctorDto);
             }
         }
@@ -79,25 +79,26 @@ namespace SGMC.Web.Controllers
         // GET: Doctor/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
-            OperationResult<DoctorDto> result = await _doctorService.GetByIdAsync(id);
+            var apiResult = await _doctorApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso || result.Datos == null)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo obtener el doctor desde la API.";
                 return View();
             }
 
-            int doctorId = result.Datos.DoctorId;
+            var dto = apiResult.Data;
+
             var updateDto = new UpdateDoctorDto
             {
-                DoctorId = doctorId,
-                PhoneNumber = result.Datos.PhoneNumber,
-                YearsOfExperience = result.Datos.YearsOfExperience,
-                Education = result.Datos.Education,
-                Bio = result.Datos.Bio,
-                ConsultationFee = result.Datos.ConsultationFee,
-                ClinicAddress = result.Datos.ClinicAddress,
-                LicenseExpirationDate = result.Datos.LicenseExpirationDate
+                DoctorId = dto.DoctorId,
+                PhoneNumber = dto.PhoneNumber,
+                YearsOfExperience = dto.YearsOfExperience,
+                Education = dto.Education,
+                Bio = dto.Bio,
+                ConsultationFee = dto.ConsultationFee,
+                ClinicAddress = dto.ClinicAddress,
+                LicenseExpirationDate = dto.LicenseExpirationDate,
             };
 
             return View(updateDto);
@@ -115,18 +116,19 @@ namespace SGMC.Web.Controllers
                     return View(updateDoctorDto);
                 }
 
-                OperationResult<DoctorDto> result = await _doctorService.UpdateAsync(updateDoctorDto);
+                var apiResult = await _doctorApiClient.UpdateAsync(updateDoctorDto);
 
-                if (!result.Exitoso)
+                if (!apiResult.Success)
                 {
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "Error al actualizar el doctor en la API.";
                     return View(updateDoctorDto);
                 }
 
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
+                ViewBag.ErrorMessage = $"Error al actualizar doctor: {ex.Message}";
                 return View(updateDoctorDto);
             }
         }
@@ -134,15 +136,15 @@ namespace SGMC.Web.Controllers
         // GET: Doctor/Delete/5
         public async Task<ActionResult> Delete(int id)
         {
-            OperationResult<DoctorDto> result = await _doctorService.GetByIdAsync(id);
+            var apiResult = await _doctorApiClient.GetByIdAsync(id);
 
-            if (!result.Exitoso)
+            if (!apiResult.Success || apiResult.Data == null)
             {
-                ViewBag.ErrorMessage = result.Mensaje;
+                ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo obtener el doctor desde la API.";
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(result.Datos);
+            return View(apiResult.Data);
         }
 
         // POST: Doctor/Delete/5
@@ -152,17 +154,18 @@ namespace SGMC.Web.Controllers
         {
             try
             {
-                OperationResult result = await _doctorService.DeleteAsync(id);
+                var apiResult = await _doctorApiClient.DeleteAsync(id);
 
-                if (!result.Exitoso)
+                if (!apiResult.Success)
                 {
-                    ViewBag.ErrorMessage = result.Mensaje;
+                    ViewBag.ErrorMessage = apiResult.ErrorMessage ?? "No se pudo eliminar el doctor en la API.";
                 }
 
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
+                ViewBag.ErrorMessage = $"Error al eliminar doctor: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }
