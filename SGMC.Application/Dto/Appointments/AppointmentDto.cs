@@ -1,49 +1,45 @@
 ﻿namespace SGMC.Application.Dto.Appointments
 {
-    //base record with common properties
+    // Base con la info common de la cita
     public record AppointmentBaseDto
     {
         public int PatientId { get; set; }
         public int DoctorId { get; set; }
         public DateTime AppointmentDate { get; set; }
+        public int StatusId { get; set; }
     }
 
-    // create dto inheriting from base
+    // DTO de creacion
     public record CreateAppointmentDto : AppointmentBaseDto
     {
-        public int AppointmentId { get; set; }
-        public string PatientName { get; set; } = string.Empty;
-        public string DoctorName { get; set; } = string.Empty;
-        public int StatusId { get; set; }
-        public string StatusName { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public string? Notes { get; set; }
     }
 
-    //main dto inheriting from base + adding display properties
+    // DTO principal de lectura
     public record AppointmentDto : AppointmentBaseDto
     {
         public int AppointmentId { get; set; }
+
         public string PatientName { get; set; } = string.Empty;
         public string DoctorName { get; set; } = string.Empty;
-        public int StatusId { get; set; }
+
         public string StatusName { get; set; } = string.Empty;
+
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public object? Id { get; set; }
     }
 
-    //update dto inheriting from base + adding update-specific properties
+    // DTO de update
     public record UpdateAppointmentDto
     {
         public int AppointmentId { get; set; }
         public DateTime AppointmentDate { get; set; }
         public int StatusId { get; set; }
-        public int Id { get; set; }
         public string? Notes { get; set; }
+        public int Id { get; set; }
     }
 
-    //statistics dto
+    // Statistics dto
     public record AppointmentStatisticsDto
     {
         public int TotalAppointments { get; set; }
@@ -51,25 +47,31 @@
         public int CancelledAppointments { get; set; }
         public int PendingAppointments { get; set; }
         public int CompletedAppointments { get; set; }
+
         public decimal CancellationRate { get; set; }
         public decimal ConfirmationRate { get; set; }
+
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
     }
-    //summary dto
+
+    // Summary dto
     public record AppointmentSummaryDto
     {
         public int AppointmentId { get; set; }
         public DateTime AppointmentDate { get; set; }
+
         public string PatientName { get; set; } = string.Empty;
         public string PatientPhone { get; set; } = string.Empty;
+
         public string DoctorName { get; set; } = string.Empty;
         public string SpecialtyName { get; set; } = string.Empty;
+
         public string StatusName { get; set; } = string.Empty;
         public int StatusId { get; set; }
     }
 
-    //report filter dto
+    // Report filter dto
     public record ReportFilterDto
     {
         public DateTime? StartDate { get; set; }
@@ -80,17 +82,18 @@
         public short? SpecialtyId { get; set; }
     }
 
-    // result dto
+    // Result dto
     public record AppointmentResultDto
     {
         public int AppointmentId { get; set; }
         public DateTime AppointmentDate { get; set; }
+
         public string? PatientName { get; set; } = string.Empty;
         public string? DoctorName { get; set; } = string.Empty;
         public string? StatusName { get; set; } = string.Empty;
     }
 
-    // filterdto
+    // Filter dto
     public record AppointmentFilterDto
     {
         public int? PatientId { get; set; }

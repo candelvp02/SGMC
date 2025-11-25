@@ -1,36 +1,46 @@
 ﻿namespace SGMC.Application.Dto.Medical
 {
-    public class MedicalRecordDto
+    // Base con datos comunes de la historia clínica
+    public record MedicalRecordBaseDto
     {
-        public int RecordId { get; set; }
-        public int PatientId { get; set; }
-        public string PatientName { get; set; } = string.Empty;
-        public int DoctorId { get; set; }
-        public string DoctorName { get; set; } = string.Empty;
-        public string Diagnosis { get; set; } = string.Empty;
-        public string Treatment { get; set; } = string.Empty;
-        public DateTime DateOfVisit { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public object? Id { get; internal set; }
-        public DateTime? UpdatedAt { get; internal set; }
-    }
-    public class CreateMedicalRecordDto
-    {
-        public int PatientId { get; set; }
-        public int DoctorId { get; set; }
-        public int? AppointmentId { get; set; }
-        public string Diagnosis { get; set; } = string.Empty;
-        public string Treatment { get; set; } = string.Empty;
-        public DateTime RecordDate { get; set; }
+        public int PatientId { get; init; }
+        public int DoctorId { get; init; }
+        public string Diagnosis { get; init; } = string.Empty;
+        public string Treatment { get; init; } = string.Empty;
     }
 
-    public class UpdateMedicalRecordDto
+    // DTO principal de lectura
+    public record MedicalRecordDto : MedicalRecordBaseDto
     {
-        public int RecordId { get; set; }
-        public string Diagnosis { get; set; } = string.Empty;
-        public string Treatment { get; set; } = string.Empty;
-        public object? PatientId { get; internal set; }
-        public object? DoctorId { get; internal set; }
-        public string? Id { get; internal set; }
+        public int MedicalRecordId { get; init; }
+
+        public string PatientName { get; init; } = string.Empty;
+        public string DoctorName { get; init; } = string.Empty;
+
+        public DateTime DateOfVisit { get; init; }
+        public DateTime CreatedAt { get; init; }
+        public DateTime? UpdatedAt { get; init; }
+        public int RecordId { get; internal set; }
+    }
+
+    // DTO de create
+    public record CreateMedicalRecordDto : MedicalRecordBaseDto
+    {
+        public int? AppointmentId { get; init; }
+
+        public DateTime RecordDate { get; init; }
+    }
+
+    // DTO de update
+    public record UpdateMedicalRecordDto
+    {
+        public int MedicalRecordId { get; init; }
+
+        public string Diagnosis { get; init; } = string.Empty;
+        public string Treatment { get; init; } = string.Empty;
+        public DateTime? RecordDate { get; init; }
+        public int RecordId { get; internal set; }
+        public object PatientId { get; internal set; }
+        public object DoctorId { get; internal set; }
     }
 }
